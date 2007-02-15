@@ -1,30 +1,27 @@
 #!/bin/bash
-# Location of the apt-repo:
+
+
+# some settings:
 HOME=/var/www/apt
+repository="$HOME"
 # were the gnupg keyrings are located. This should be outside of the apt-repo!
 GNUPGHOME="/var/www/gpg/"
 export GNUPGHOME=$GNUPGHOME
 
-dists="tunix dapper edgy"
-arch="i386 powerpc amd64"
+# ensure good permissions:
+chown -R root:www-data $repository
+chmod -R u+rwX $repository
+chmod -R g+rX $repository
+chmod -R o-rwx $repository
+chmod -R g-w $repository
 
-for d in $d; do
-	chmod g+r /var/www/apt/dists/$d/main/all/*
-done
+dists="$(ls $repository/dists)"
 
 signer="Mathias Ertl <mati@pluto.htu.tuwien.ac.at>"
 pubring="pubring-mati.gpg"
 secring="secring-mati.gpg"
 
-# first check we run as good user
-if [[ "$(id -u -n)" != "apt" ]]; then
-	echo "Please execute script as user \"apt\" (sudo -u apt $0)"
-	exit
-fi
-if [[ "$(id -g $(id -u -n))" != "$(id -g www-data)" ]]; then
-	echo "Please execute script with gid \"www-data\""
-	exit
-fi
+packagers_keyring="$pubring"
 
 # only user apt has write permissions, web-server has read-only access
 umask 0027
@@ -32,76 +29,137 @@ umask 0027
 # cd to home-dir (the dir of the repo)
 cd $HOME
 
-# first we create Packages and Packages.gz files:
-for d in $dists; do
-   for a in $arch; do 
-      if [[ $(find dists/$d/main/all/*_$a.deb 2> /dev/null | wc -l) -gt "0" || $(find dists/$d/main/all/*_all.deb 2> /dev/null | wc -l) -gt "0" ]]; then
-         if [[ -d "dists/$d/main/binary-$a/" ]]; then
-            if [[ -r "dists/$d/main/all/override.$d.main" ]]; then
-		override_file="dists/$d/main/all/override.$d.main"
-            else
-                echo "Warning: no override file (dists/$d/main/all/override.$d.main) found, using /dev/null instead."
-                override_file="/dev/null"
-            fi
-            dpkg-scanpackages -a$a dists/$d/main/all/ $override_file > dists/$d/main/binary-$a/Packages
-            cat dists/$d/main/binary-$a/Packages | gzip -9c > dists/$d/main/binary-$a/Packages.gz
-            cat dists/$d/main/binary-$a/Packages | bzip2 -z9 > dists/$d/main/binary-$a/Packages.bz2
-         else
-            echo "Error: no directory dists/$d/main/binary-$a/ found!"
-         fi
-      else
-         echo "No $a-packages for $d found."
-      fi
-   done
-done
-
 # to sign the Release files, we need the gpg-passphrase. 
-echo -e "\nPlease supply your GnuPG passphrase (will not be echoed)..."
+echo -e "Please supply your GnuPG passphrase (will not be echoed)..."
 read -p "GnuPG passphrase: " -s -a gpgpass
 echo -e "\n"
 
-# This loop creates the Release-files and signes them:
-for d in $dists; do
-	# Note that the description file is not part of the debian repository
-	# specification, it just makes a lot of things easier!
-	if [[ ! -r $HOME/dists/$d/main/all/description ]]; then
-		echo "ERROR: No description for $d file!!"
-		continue
+# first we create Packages and Packages.gz files (horrific loop!):
+for dist in $dists; do
+	# first we get the common description:
+	date=$(date -R)
+	if [[ ! -f dists/$dist/Release.head ]]; then
+		echo "Warning: no dists/$dist/Release.head found!"
 	fi
-	
-	# First we create the Release files in in the binary-* directories
-	for a in $arch; do
-		if [[ ! -r $HOME/dists/$d/main/binary-$a/Packages ]]; then
-			break
+
+	all_comp=$(find dists/$dist/ -maxdepth 1 -mindepth 1 -type d -printf "%f " | sed 's/ $//')
+
+	# see what components we have:
+	for comp in $all_comp; do
+
+		# first we see if there are even any packages.
+		if [[ -d dists/$dist/$comp/all/ && ( "$(ls dists/$dist/$comp/all/*.deb dists/$dist/$comp/all/*.dsc 2> /dev/null | wc -l)" -gt "0" ) ]]; then
+			chmod 640 dists/$dist/$comp/all/*
+		else
+			echo "Warning: No packages AT ALL found for $dist/$comp"
+			continue
 		fi
-		cd $HOME/dists/$d/main/binary-$a/
-		cat "$HOME/dists/$d/main/all/description" > Release
-		echo "Architecture: $a" >> Release
+
+		# define an override-file
+		if [[ -r "dists/$dist/$comp/override.$dist.$comp" ]]; then
+			override_file="dists/$dist/$comp/override.$dist.$comp"
+		else
+			echo "Warning: no override file (dists/$dist/$comp/override.$dist.$comp) found, using /dev/null instead."
+			override_file="/dev/null"
+		fi
+
+		# this is for the binary packages:
+		for a in $(find dists/$dist/$comp/binary* -maxdepth 0 -mindepth 0 -type d); do 
+			arch=$(basename $a | sed 's/.*binary-//')
+
+			if [[ $(find dists/$dist/$comp/all/*_$arch.deb 2> /dev/null | wc -l) -gt "0" || $(find dists/$dist/$comp/all/*_all.deb 2> /dev/null | wc -l) -gt "0" ]]; then
+				dpkg-scanpackages -a$arch dists/$dist/$comp/all/ $override_file > dists/$dist/$comp/binary-$arch/Packages
+				cat dists/$dist/$comp/binary-$arch/Packages | gzip -9c > dists/$dist/$comp/binary-$arch/Packages.gz
+				cat dists/$dist/$comp/binary-$arch/Packages | bzip2 -z9 > dists/$dist/$comp/binary-$arch/Packages.bz2
+			
+				release_file="dists/$dist/$comp/binary-$arch/Release"
+				cat dists/$dist/Release.head > $release_file
+				echo "Architecture: $arch" >> $release_file
+				echo "Component: $comp" >> $release_file
+				# The grep expression filters out the Release file itself.
+				apt-ftparchive release dists/$dist/$comp/binary-$arch/ | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> $release_file
+
+				rm -f dists/$dist/$comp/binary-$arch/Release.gpg # less annoying questions!
+				output="$(echo "$gpgpass" | gpg --logger-fd 1 --keyring $pubring --secret-keyring $secring --passphrase-fd 0 -a -b -s -q -u "$signer" --batch -o dists/$dist/$comp/binary-$arch/Release.gpg dists/$dist/$comp/binary-$arch/Release)"
+				if [[ "$?" != "0" ]]; then
+					echo "!!! Error: signing of dists/$dist/$comp/binary-$arch/Release.gpg failed."
+					echo -e "gpg-output was:\n$output"
+					exit
+				fi
+			else
+				echo "Warning: No $arch-packages for $dist/$comp found."
+			fi
+		done
+
+		# this is for source-packages:
+		if [[ -d dists/$dist/$comp/source ]]; then
+			# this checks if there are any source-packages in all/
+			if [[ "$(ls dists/$dist/$comp/all/*.dsc 2> /dev/null | wc -l)" -gt "0" ]]; then
+				# This makes some very good error-checking:
+				for src_pkg in $(ls dists/$dist/$comp/all/*.dsc); do
+					output=$(gpg --logger-fd 1 --keyring $packagers_keyring --verify $src_pkg)
+					if [[ "$?" != "0" ]]; then
+						echo "!!! Error: Signature of $src_pkg could not be verified!!!"
+						echo -e "Output was:\n$output"
+						exit
+					fi
+					
+					# this will grep the checksum lines from the .dsc file,
+					# sed them into md5sum compatible format and send that
+					# to md5sum. Note that stdout is surpressed for less
+					# bogus-output.
+					grep "^ [0-9a-z]\{32\} [0-9]* " $src_pkg |\
+						 sed "s/^ \([0-9a-z]\{32\}\) [0-9]* /\1  dists\/$dist\/$comp\/all\//" |\
+						 md5sum -c - > /dev/null
+					if [[ "$?" != "0" ]]; then
+						echo "!!! Error: Checksum found in $src_pkg does not match, see above!"
+						exit
+					fi
+				done
+
+				dpkg-scansources dists/$dist/$comp/all/ $override_file > dists/$dist/$comp/source/Sources
+				cat dists/$dist/$comp/source/Sources | gzip -9c > dists/$dist/$comp/source/Sources.gz
+				cat dists/$dist/$comp/source/Sources | bzip2 -z9 > dists/$dist/$comp/source/Sources.bz2
+				
+				release_file="dists/$dist/$comp/source/Release"
+				cat dists/$dist/Release.head > $release_file
+				echo "Architecture: source" >> $release_file
+				echo "Component: $comp" >> $release_file
+				# The grep expression filters out the Release file itself.
+				apt-ftparchive release dists/$dist/$comp/binary-$arch/ | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> $release_file
+
+				rm -f dists/$dist/$comp/source/Release.gpg # less annoying questions!
+				output=$(echo "$gpgpass" | gpg --logger-fd 1 --keyring $pubring --secret-keyring $secring --passphrase-fd 0 -a -b -s -q -u "$signer" --batch -o dists/$dist/$comp/source/Release.gpg dists/$dist/$comp/source/Release)
+				if [[ "$?" != "0" ]]; then
+					echo "!!! Error: signing of dists/$dist/$comp/source/Release.gpg failed."
+					echo -e "gpg-output was:\n$output"
+					exit
+				fi
+			else
+				echo "Warning: No source packages in dist/$dist/$comp/all/ found."
+			fi
+		else
+			echo " No source directory found for $dist/$comp"
+		fi
+
+		release_file="dists/$dist/Release"
+		cat dists/$dist/Release.head > $release_file
+		echo Architectures: $(find dists/$dist/$comp/binary* -maxdepth 0 -mindepth 0 -type d -printf "%f " | sed "s/dists\/$dist\/$comp\/binary-//g" | sed 's/ $//') >> $release_file
+		echo "Components: $all_comp" >> $release_file
 		# The grep expression filters out the Release file itself.
-		apt-ftparchive release . | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> Release
+		apt-ftparchive release dists/$dist/ | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> $release_file
 
-		rm -f Release.gpg # less annoying questions!
-		echo "$gpgpass" | gpg --keyring $pubring --secret-keyring $secring --passphrase-fd 0 -a -b -s -q -u "$signer" -o Release.gpg Release
-	done
-	
-	# now we dynamically create the arches for this repo that go into the toplevel
-	# releases file. Note that an arch is only mentioned if there is a Packages
-	# file for it.
-	repo_arches=""
-	for i in $HOME/dists/$d/main/binary-*/Packages; do
-		# this if is for the case where there are no Packages files. In that case
-		# bash still gets into the for-loop with the right-hand expression.
-		if [[ "$i" == "$HOME/dists/$d/main/binary-*/Packages" ]]; then
-			break
+		rm -f dists/$dist/Release.gpg # less annoying questions!
+		output=$(echo "$gpgpass" | gpg --logger-fd 1 --keyring $pubring --secret-keyring $secring --passphrase-fd 0 -a -b -s -q -u "$signer" --batch -o dists/$dist/Release.gpg dists/$dist/Release)
+		if [[ "$?" != "0" ]]; then
+			echo "!!! Error: signing of dists/$dist/Release failed."
+			echo -e "gpg-output was:\n$output"
+			exit
 		fi
-		repo_arches="$repo_arches $(echo "$i" | sed "s/\/var\/www\/apt\/dists\/$d\/main\/binary-\(.*\)\/Packages/\1/")"
+	common_desc=""
 	done
-
-	cd $HOME/dists/$d/
-	cat "$HOME/dists/$d/main/all/description" > Release
-	echo "Architecture:$repo_arches" >> Release
-	apt-ftparchive release . | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> Release
-
-	rm -f Release.gpg # less annoying questions!
-	echo "$gpgpass" | gpg --keyring $pubring --secret-keyring $secring --passphrase-fd 0 -a -b -s -q -u "$signer" -o Release.gpg Release
 done
+
+gpgpass=""
+echo "Finished."
+exit
