@@ -162,4 +162,3 @@ done
 
 gpgpass=""
 echo "Finished."
-exit
