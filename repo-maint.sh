@@ -1,11 +1,10 @@
 #!/bin/bash
 
-
 # some settings:
-HOME=/var/www/apt
+HOME=/srv/apt
 repository="$HOME"
 # were the gnupg keyrings are located. This should be outside of the apt-repo!
-GNUPGHOME="/var/www/gpg/"
+GNUPGHOME="/srv/secrets/gpg/"
 export GNUPGHOME=$GNUPGHOME
 
 # ensure good permissions:
@@ -162,3 +161,4 @@ done
 
 gpgpass=""
 echo "Finished."
+exit
