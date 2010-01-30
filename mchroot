@@ -1,0 +1,16 @@
+#!/bin/bash
+
+for dir in $(ls); do
+	if [[ ! -d $dir ]]; then
+		continue
+	fi
+	dist=$(echo $dir | sed 's/-.*//' )
+	arch=$(echo $dir | sed 's/.*-//' )
+	
+	echo "# $dir"
+	cmd=$(echo $@ | sed "s/DIR/$dir/g")
+	cmd=$(echo $cmd | sed "s/ARCH/$arch/g")
+	cmd=$(echo $cmd | sed "s/DIST/$dist/g")
+	$cmd
+	echo ""
+done

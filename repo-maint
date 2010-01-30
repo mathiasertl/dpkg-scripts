@@ -1,0 +1,166 @@
+#!/bin/bash
+
+# some settings:
+#GNUPGHOME="$HOME"
+# were the gnupg keyrings are located. This should be outside of the apt-repo!
+#export GNUPGHOME=$GNUPGHOME
+
+repository="/srv/www/apt.fsinf.at"
+
+signer="Mathias Ertl <apt-repository@fsinf.at>"
+
+# cd to home-dir (the dir of the repo)
+cd $repository/dists
+dists="$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n)"
+
+# to sign the Release files, we need the gpg-passphrase. 
+#echo -e "Please supply your GnuPG passphrase (will not be echoed)..."
+#read -p "GnuPG passphrase: " -s -a gpgpass
+#echo -e "\n"
+
+# first we create Packages and Packages.gz files (horrific loop!):
+for dist in $dists; do
+	cd $dist
+	modified=0
+
+	# we might want to skip?
+	if [[ -f .ignore ]]; then
+		cd ../
+		continue
+	fi
+
+	# first we get the common description:
+	if [[ ! -f Release.head ]]; then
+		echo "Warning: no dists/$dist/Release.head found!"
+	fi
+	
+	comps=$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n)
+	
+	# see what components we have:
+	for comp in $comps; do
+		cd $comp
+
+		# skip?
+		if [[ all -ot .stamp || -f .ignore ]]; then
+			cd ..
+			continue
+		fi
+		touch .stamp
+	
+		# define an override-file
+		if [[ -f "override" ]]; then
+			override_file="override"
+		else
+			echo "Warning: no override file (dists/$dist/$comp/override) found, using /dev/null instead."
+			override_file="/dev/null"
+		fi
+
+		# this is for the binary packages:
+		dirs=$(find . -maxdepth 1 -mindepth 1 -name "binary*" -type d -printf %P\\n)
+		for dir in $dirs; do 
+			arch=$(echo $dir | sed 's/.*binary-//')
+
+			echo "$dist/$comp/$arch:"
+			dpkg-scanpackages -a$arch all $override_file dists/$dist/$comp/ > $dir/Packages
+			cat $dir/Packages | gzip -9c > $dir/Packages.gz
+			cat $dir/Packages | bzip2 -z9 > $dir/Packages.bz2
+			modified=1
+
+			apt-remove-duplicates -d all
+			
+			release_file="$dir/Release"
+			cat ../Release.head > $release_file
+			echo "Architecture: $arch" >> $release_file
+			echo "Component: $comp" >> $release_file
+			# The grep expression filters out the Release file itself:
+			apt-ftparchive release $dir | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> $release_file
+
+			rm -f $dir/Release.gpg # less annoying questions!
+			output="$(gpg --logger-fd 1 -a -b -s -q -u "$signer" --batch -o $dir/Release.gpg $dir/Release)"
+			if [[ "$?" != "0" ]]; then
+				echo "!!! Error: signing of dists/$dist/$comp/binary-$arch/Release.gpg failed."
+				echo -e "gpg-output was:\n$output"
+				exit
+			fi
+		done
+
+		# This makes some very good error-checking:
+		for src_pkg in $(ls all/*.dsc); do
+			output=$(gpg --logger-fd 1 --verify $src_pkg)
+			if [[ "$?" != "0" ]]; then
+				echo "!!! Error: Signature of $src_pkg could not be verified!!!"
+				echo -e "Output was:\n$output"
+				exit
+			fi
+			
+			# this will grep the checksum lines from the .dsc file,
+			# sed them into md5sum compatible format and send that
+			# to md5sum. Note that stdout is surpressed for less
+			# bogus-output.
+			grep "^ [0-9a-z]\{32\} [0-9]* " $src_pkg |\
+				 sed "s/^ \([0-9a-z]\{32\}\) [0-9]* /\1  all\//" |\
+				 md5sum -c - > /dev/null
+			if [[ "$?" != "0" ]]; then
+				echo "!!! Error: Checksum found in $src_pkg does not match, see above!"
+			fi
+		done
+	
+		dpkg-scansources all $override_file dists/$dist/$comp/ > source/Sources
+		cat source/Sources | gzip -9c > source/Sources.gz
+		cat source/Sources | bzip2 -z9 > source/Sources.bz2
+		modified=1
+				
+		release_file="source/Release"
+		cat ../Release.head > $release_file
+		echo "Architecture: source" >> $release_file
+		echo "Component: $comp" >> $release_file
+		# The grep expression filters out the Release file itself.
+		apt-ftparchive release source | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> $release_file
+
+		rm -f source/Release.gpg # less annoying questions!
+		output=$(gpg --logger-fd 1 -a -b -s -q -u "$signer" --batch -o source/Release.gpg source/Release)
+		if [[ "$?" != "0" ]]; then
+			echo "!!! Error: signing of dists/$dist/$comp/source/Release.gpg failed."
+			echo -e "gpg-output was:\n$output"
+			exit
+		fi
+
+		common_desc=""
+		cd ../
+	done # end of components loop
+
+	# skip if nothing was modified
+	if [[ $modified -eq 0 ]]; then
+		cd ..
+		continue
+	fi
+	
+	echo "Updating $dist/Release..."
+	# create $dist/Release file
+	release_file="Release"
+	cat Release.head > $release_file
+	echo "Architectures: i386 amd64" >> $release_file
+	echo "Components: $comps" | tr '\n' ' '  >> $release_file
+	echo "" >> $release_file
+	# The grep expression filters out the Release file itself.
+	apt-ftparchive release . | grep --invert-match "^ [0-9a-z]* *[0-9]* Release$" >> $release_file
+
+	rm -f Release.gpg # less annoying questions!
+	output=$(gpg --logger-fd 1 -a -b -s -q -u "$signer" --batch -o Release.gpg Release)
+	if [[ "$?" != "0" ]]; then
+		echo "!!! Error: signing of dists/$dist/Release failed."
+		echo -e "gpg-output was:\n$output"
+		exit
+	fi
+
+	cd ../
+done # end of dists loop
+
+gpgpass=""
+
+# ensure good permissions:
+chown -R root:www-data $repository
+chmod -R u+rwX $repository
+chmod -R g+rX $repository
+chmod -R o-rwx $repository
+chmod -R g-w $repository

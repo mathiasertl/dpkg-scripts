@@ -1,0 +1,88 @@
+#!/usr/bin/python3
+
+import os, sys, subprocess, optparse
+
+parser = optparse.OptionParser()
+parser.add_option( '-d', '--directory',
+	help="Search for duplicates in this directory." )
+options, args = parser.parse_args()
+
+if not options.directory:
+	print( "Error: No directory specified." )
+	parser.print_help()
+	sys.exit(1)
+
+class package_file( object ):
+	def remove( self ):
+#		print( "Removing " + self.filename )
+		os.remove( options.directory + '/' + self.filename )
+
+class package( package_file ):
+	def __init__( self, filename ):
+		self.filename = filename
+		a, b, c = filename.split( '_' )
+		self.name = a
+		self.version = b
+		self.arch = os.path.splitext( c )[0]
+
+	def key(self):
+		return (self.name, self.arch)
+
+class orig_source( package_file ):
+	def __init__( self, filename ):
+		self.filename = filename
+		a, b = filename.split( '_' )
+		self.name = a
+		self.version = b.split( '.orig.tar.gz', 1 )[0]
+	
+	def key(self):
+		return self.name
+
+class source( package_file ):
+	def __init__( self, filename ):
+		self.filename = filename
+		self.name, rest = filename.split('_')
+		if rest.endswith( '.diff.gz' ):
+			self.version = rest.split( '.diff.gz' )[0]
+			self.suffix = 'diff.gz'
+		elif rest.endswith( '.dsc' ):
+			self.version = rest.split( '.dsc' )[0]
+			self.suffix = 'dsc'
+		else:
+			print( "Warning: Unknown suffix." )
+
+	def key( self ):
+		return (self.name, self.suffix)
+
+def del_duplicates( package_class, dictionary, file ):
+	p = package_class( file )
+	key = p.key()
+	if key in dictionary.keys():
+		other = dictionary[ key ]
+		cmd = [ 'dpkg', '--compare-versions', p.version, 'lt', other.version ]
+		retcode = subprocess.call( cmd )
+		if retcode == 0:
+#			print( p.filename + ' is duplicate of ' + other.filename )
+			p.remove()
+		else:
+#			print( other.filename + ' is duplicate of ' + p.filename )
+			dictionary[key] = p
+			other.remove()
+	else:
+		dictionary[key] = p
+	
+packages = {} # { package_name: package() }
+orig_sources = {}
+sources = {}
+files = os.listdir( options.directory )
+files.sort()
+
+for file in files:
+	if file.endswith( '.deb' ):
+		del_duplicates( package, packages, file )
+	elif file.endswith( 'orig.tar.gz' ):
+		del_duplicates( orig_source, orig_sources, file )
+	elif file.endswith( '.diff.gz' ) or file.endswith( '.dsc' ):
+		del_duplicates( source, sources, file )
+	else:
+		print( "Warning: %s: Unknown suffix" %( file ))
