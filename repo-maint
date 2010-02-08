@@ -57,6 +57,10 @@ for dist in $dists; do
 
 		# this is for the binary packages:
 		dirs=$(find . -maxdepth 1 -mindepth 1 -name "binary*" -type d -printf %P\\n)
+		if [[ -z $dirs ]]; then
+			echo "Warning: No binary-ARCH dirs found in dists/$dist/$comp"
+		fi
+
 		for dir in $dirs; do 
 			arch=$(echo $dir | sed 's/.*binary-//')
 
@@ -104,7 +108,10 @@ for dist in $dists; do
 				echo "!!! Error: Checksum found in $src_pkg does not match, see above!"
 			fi
 		done
-	
+
+		if [[ ! -d source ]]; then
+			mkdir source
+		fi
 		dpkg-scansources all $override_file dists/$dist/$comp/ > source/Sources
 		cat source/Sources | gzip -9c > source/Sources.gz
 		cat source/Sources | bzip2 -z9 > source/Sources.bz2
