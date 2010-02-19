@@ -6,4 +6,4 @@ su mati -c "mchroot schroot -c DIR -d /home/mati/repositories/all/spectrum-dev .
 cd /srv/www/apt.fsinf.at/dists
 rsync -av /home/mati/build/ ./
 repo-maint
-find | grep spectrum-dev | xargs rm 
+find /home/mati/build | grep spectrum-dev | xargs rm 
