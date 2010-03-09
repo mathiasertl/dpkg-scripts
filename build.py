@@ -134,9 +134,9 @@ debuild = Popen( ['debuild' ] )
 debuild.communicate()
 
 # delete useless files:
-changes = glob.glob( '../' + source_pkg + '*.changes' )
-for change in changes:
-	os.remove( change )
+#changes = glob.glob( '../' + source_pkg + '*.changes' )
+#for change in changes:
+#	os.remove( change )
 builds = glob.glob( '../' + source_pkg + '*.build' )
 for build in builds:
 	os.remove( build )
