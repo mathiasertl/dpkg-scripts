@@ -104,6 +104,9 @@ print( "Set Standards-Version to " + standards + '...' )
 p = Popen( [ 'sed', '-i', 's/^Standards-Version:.*/Standards-Version: ' + standards + '/', 'debian/control' ] )
 p.communicate()
 
+# set distribution in topmost entry in changes-file:
+p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) '+options.dist_name+';/', 'debian/changelog' ] )
+
 # get source package and binary packages:
 binary_pkgs = []
 source_pkg = ''
@@ -211,6 +214,7 @@ print( "Building repository tree..." )
 move_files( source_pkg, 'diff.gz', 'move', 'source' )
 move_files( source_pkg, 'dsc', 'move', 'source' )
 move_files( source_pkg, 'orig.tar.gz', 'copy', 'source' )
+move_files( source_pkg, 'changes', 'move', 'source' )
 for package in binary_pkgs:
 	move_files( package, 'deb', 'move' )
 
@@ -218,6 +222,9 @@ for package in binary_pkgs:
 f = open( 'debian/compat', 'w' )
 f.write( '7\n' )
 f.close()
+
+# set distribution in topmost entry in changes-file:
+p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) karmic;/', 'debian/changelog' ] )
 
 # standards version to most recent
 p = Popen( [ 'sed', '-i', 's/^Standards-Version:.*/Standards-Version: 3.8.3/', 'debian/control' ] )

@@ -24,9 +24,10 @@ class package( package_file ):
 		self.name = a
 		self.version = b
 		self.arch = os.path.splitext( c )[0]
+		self.ext = os.path.splitext( c )[1]
 
 	def key(self):
-		return (self.name, self.arch)
+		return (self.name, self.arch, self.ext)
 
 class orig_source( package_file ):
 	def __init__( self, filename ):
@@ -48,6 +49,9 @@ class source( package_file ):
 		elif rest.endswith( '.dsc' ):
 			self.version = rest.split( '.dsc' )[0]
 			self.suffix = 'dsc'
+		elif rest.endswith( '.changes' ):
+			self.version = rest.split( '.changes' )[0]
+			self.suffix = 'changes'
 		else:
 			print( "Warning: Unknown suffix." )
 
@@ -78,7 +82,7 @@ files = os.listdir( options.directory )
 files.sort()
 
 for file in files:
-	if file.endswith( '.deb' ):
+	if file.endswith( '.deb' ) or file.endswith( '.changes' ):
 		del_duplicates( package, packages, file )
 	elif file.endswith( 'orig.tar.gz' ):
 		del_duplicates( orig_source, orig_sources, file )
