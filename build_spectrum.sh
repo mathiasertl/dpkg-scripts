@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ $(whoami) != "root" ]]; then
+	echo "Error: require root privileges."
+	exit 1 
+fi
+
 find /home/mati/build | grep spectrum-dev | xargs rm -f 2> /dev/null
 cd /chroot
 su mati -c "mchroot schroot -c DIR -d /home/mati/repositories/all/spectrum-dev ../../scripts/build.py"
