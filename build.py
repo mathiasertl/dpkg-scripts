@@ -136,10 +136,13 @@ print( "\n\nBuilding target..." )
 debuild = Popen( [ 'debuild', '--preserve-envvar', 'DIST', '--preserve-envvar', 'ARCH' ] )
 debuild.communicate()
 
-# delete useless files:
-#changes = glob.glob( '../' + source_pkg + '*.changes' )
-#for change in changes:
-#	os.remove( change )
+# if we have a "final" target, we execute it
+for line in open( 'debian/rules' ).readlines():
+	if line.startswith( 'final:' ):
+		print( 'debian/rules final' )
+		final_make = Popen( [ 'debian/rules', 'final' ] )
+		final_make.communicate()
+
 builds = glob.glob( '../' + source_pkg + '*.build' )
 for build in builds:
 	os.remove( build )
