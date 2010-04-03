@@ -133,7 +133,7 @@ p2 = Popen( [ 'xargs', 'sed', '-i', 's/__DATE__/' + timestamp + '/' ], stdin = p
 p2.communicate()
 
 print( "\n\nBuilding target..." )
-debuild = Popen( [ 'debuild', '--preserve-envvar', 'DIST', '--preserve-envvar', 'ARCH' ] )
+debuild = Popen( [ 'debuild', '--preserve-envvar', 'DIST', '--preserve-envvar', 'ARCH', '-S', '-sa' ] )
 debuild.communicate()
 
 # if we have a "final" target, we execute it
