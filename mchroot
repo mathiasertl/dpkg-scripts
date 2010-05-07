@@ -1,11 +1,15 @@
 #!/bin/bash
 
+error_dists=""
+
 for dir in $(ls); do
 	if [[ ! -d $dir ]]; then
 		continue
 	fi
 	dist=$(echo $dir | sed 's/-.*//' )
 	arch=$(echo $dir | sed 's/.*-//' )
+	ccache="~/.ccache-$dist-$arch"
+	export CCACHE_DIR="$ccache"
 	export DIST="$dist"
 	export ARCH="$arch"
 
@@ -15,5 +19,13 @@ for dir in $(ls); do
 	cmd=$(echo $cmd | sed "s/ARCH/$arch/g")
 	cmd=$(echo $cmd | sed "s/DIST/$dist/g")
 	$cmd
+	if [[ "$?" -ne "0" ]]; then
+		error_dists="$error_dists $dir"
+	fi
 	echo ""
 done
+
+if [[ "$error_dists" != "" ]]; then
+	echo "Warning: The following distributions did not complete successfully:"
+	echo -e "\t$error_dists"
+fi
