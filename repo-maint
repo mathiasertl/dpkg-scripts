@@ -11,7 +11,7 @@ signer="Mathias Ertl <apt-repository@fsinf.at>"
 
 # cd to home-dir (the dir of the repo)
 cd $repository/dists
-dists="$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n)"
+dists="$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n | sort)"
 
 # to sign the Release files, we need the gpg-passphrase. 
 #echo -e "Please supply your GnuPG passphrase (will not be echoed)..."
@@ -34,7 +34,7 @@ for dist in $dists; do
 		echo "Warning: no dists/$dist/Release.head found!"
 	fi
 	
-	comps=$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n)
+	comps=$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n | sort)
 	
 	# see what components we have:
 	for comp in $comps; do
@@ -45,6 +45,8 @@ for dist in $dists; do
 			cd ..
 			continue
 		fi
+
+		sleep 1s
 		touch .stamp
 	
 		# define an override-file
@@ -61,16 +63,17 @@ for dist in $dists; do
 			echo "Warning: No binary-ARCH dirs found in dists/$dist/$comp"
 		fi
 
+		apt-remove-duplicates -d all
+
 		for dir in $dirs; do 
 			arch=$(echo $dir | sed 's/.*binary-//')
 
-			echo "$dist/$comp/$arch:"
+			echo "$dist/$comp/$arch"
 			dpkg-scanpackages -a$arch all $override_file dists/$dist/$comp/ > $dir/Packages
 			cat $dir/Packages | gzip -9c > $dir/Packages.gz
 			cat $dir/Packages | bzip2 -z9 > $dir/Packages.bz2
 			modified=1
 
-			apt-remove-duplicates -d all
 			
 			release_file="$dir/Release"
 			cat ../Release.head > $release_file
@@ -112,6 +115,8 @@ for dist in $dists; do
 		if [[ ! -d source ]]; then
 			mkdir source
 		fi
+		
+		echo "$dist/$comp/source"
 		dpkg-scansources all $override_file dists/$dist/$comp/ > source/Sources
 		cat source/Sources | gzip -9c > source/Sources.gz
 		cat source/Sources | bzip2 -z9 > source/Sources.bz2
