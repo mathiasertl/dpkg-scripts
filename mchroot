@@ -8,7 +8,7 @@ for dir in $(ls); do
 	fi
 	dist=$(echo $dir | sed 's/-.*//' )
 	arch=$(echo $dir | sed 's/.*-//' )
-	ccache="~/.ccache-$dist-$arch"
+	ccache="$HOME/.ccache-$dist-$arch"
 	export CCACHE_DIR="$ccache"
 	export DIST="$dist"
 	export ARCH="$arch"
