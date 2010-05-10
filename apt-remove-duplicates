@@ -52,6 +52,9 @@ class source( package_file ):
 		elif rest.endswith( '.changes' ):
 			self.version = rest.split( '.changes' )[0]
 			self.suffix = 'changes'
+		elif rest.endswith( '.build' ):
+			self.version = rest.split( '.build' )[0]
+			self.suffix = 'build'
 		else:
 			print( "Warning: Unknown suffix." )
 
@@ -84,9 +87,11 @@ files.sort()
 for file in files:
 	if file.endswith( '.deb' ) or file.endswith( '.changes' ):
 		del_duplicates( package, packages, file )
+	elif file.endswith( '.changes' ) and not file.endswith( 'source.changes' ):
+		del_duplicates( package, packages, file )
 	elif file.endswith( 'orig.tar.gz' ):
 		del_duplicates( orig_source, orig_sources, file )
-	elif file.endswith( '.diff.gz' ) or file.endswith( '.dsc' ):
+	elif file.endswith( '.diff.gz' ) or file.endswith( '.dsc' ) or file.endswith( 'source.changes'):
 		del_duplicates( source, sources, file )
 	else:
 		print( "Warning: %s: Unknown suffix" %( file ))
