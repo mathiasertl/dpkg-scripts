@@ -24,6 +24,9 @@ def get_lsb_value( var ):
 def get_distribution():
 	return get_lsb_value( 'DISTRIB_CODENAME' )
 
+def get_dist_id():
+	return get_lsb_value( 'DISTRIB_ID' )
+
 def get_source_package():
 	test_dir()
 	f = open( 'debian/control', 'r' )

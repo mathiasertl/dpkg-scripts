@@ -21,6 +21,8 @@ parser.add_option( '--arch',
 	help="Override the architecture that we build for. The script should "
 	"automatically detect the architecture with the help of "
 	"dpkg-architecture." )
+parser.add_option( '--dist-id', help="Either 'ubuntu' or 'debian', "
+	"this is just passed to the build process." )
 parser.add_option( '--no-source', action='store_false', dest='src', default=True,
 	help="Do not build source package" )
 parser.add_option( '--no-binary', action='store_false', dest='bin', default=True,
@@ -40,6 +42,11 @@ if not options.dist:
 	options.dist = env.get_distribution()
 if not options.arch:
 	options.arch = env.get_architecture()
+if not options.dist_id:
+	options.dist_id = env.get_dist_id()
+os.environ['ARCH'] = options.arch
+os.environ['DIST'] = options.dist
+os.environ['DIST_ID'] = options.dist_id
 
 # switch to distro-specific dir, if it exists
 basename = os.path.basename( os.getcwd() )
@@ -86,7 +93,8 @@ process.prepare( options.dist )
 
 print( "\n\nBuilding target..." )
 debuild_params = [ '--set-envvar', 'DIST=' + options.dist, 
-	'--set-envvar', 'ARCH=' + options.arch ]
+	'--set-envvar', 'ARCH=' + options.arch,
+	'--set-envvar', 'DIST_ID=' + options.dist_id ]
 
 if options.src:
 	cmd = [ 'debuild' ] + debuild_params + [ '-S', '-sa']
