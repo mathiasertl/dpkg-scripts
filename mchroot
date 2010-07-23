@@ -10,14 +10,12 @@ for dir in $(ls); do
 	arch=$(echo $dir | sed 's/.*-//' )
 	ccache="$HOME/.ccache-$dist-$arch"
 	export CCACHE_DIR="$ccache"
-	export DIST="$dist"
-	export ARCH="$arch"
-
 	
 	echo "# $dir"
 	cmd=$(echo $@ | sed "s/DIR/$dir/g")
 	cmd=$(echo $cmd | sed "s/ARCH/$arch/g")
 	cmd=$(echo $cmd | sed "s/DIST/$dist/g")
+	echo $cmd
 	$cmd
 	if [[ "$?" -ne "0" ]]; then
 		error_dists="$error_dists $dir"
