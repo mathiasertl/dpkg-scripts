@@ -78,14 +78,19 @@ if package_config.has_section( 'distros' ):
 			print( "Not building for " + options.dist )
 			sys.exit()
 
+control_file = 'debian/control'
+if os.path.exists( 'debian/control.' + options.dist ):
+	control_file = 'debian/control.' + options.dist
+
+check = [ 'dpkg-checkbuilddeps', control_file ]
+p = Popen( check, stderr=PIPE )
+stderr = p.communicate()[1].strip()
+if p.returncode:
+	print( stderr.decode( 'utf_8' ) )
+	sys.exit(1)
+
 if action == 'check':
-	check = [ 'dpkg-checkbuilddeps' ]
-	p = Popen( check, stderr=PIPE )
-	stderr = p.communicate()[1].strip()
-	if p.returncode:
-		print( stderr.decode( 'utf_8' ) )
-	else:
-		print( "Passed dependency check." )
+	print( "Passed dependency check." )
 	sys.exit()
 
 # prepare package
@@ -94,7 +99,7 @@ process.prepare( options.dist )
 print( "\n\nBuilding target..." )
 debuild_params = [ '--set-envvar', 'DIST=' + options.dist, 
 	'--set-envvar', 'ARCH=' + options.arch,
-	'--set-envvar', 'DIST_ID=' + options.dist_id ]
+	'--set-envvar', 'DIST_ID=' + options.dist_id, '-d' ]
 
 if options.src:
 	cmd = [ 'debuild' ] + debuild_params + [ '-S', '-sa']
@@ -176,11 +181,18 @@ def move_files( path, action, package, do_link=True ):
 	if do_link:
 		link( package, target )
 
+# determine source package format:
+source_format = open( 'debian/source/format', 'r' ).readline().strip()
+if source_format == '3.0 (quilt)':
+	debian_changes = '../%s_%s.debian.tar.gz'%(source,version)
+else:
+	debian_changes = '../%s_%s.diff.gz'%(source,version)
+
 # copy/move everything to generic components and symlink in specific components
 print( "Building repository tree..." )
 if options.src:
 	move_files( "../%s_%s.orig.tar.gz" %(source, upstream_version), 'copy', 'source' )
-	move_files( "../%s_%s.diff.gz" %(source, version), 'move', 'source' )
+	move_files( debian_changes, 'move', 'source' )
 	move_files( "../%s_%s.dsc" %(source, version), 'move', 'source' )
 	move_files( "../%s_%s_source.changes" %(source, version), 'move', 'source' )
 	move_files( "../%s_%s_source.build" %(source, version), 'move', 'source' )
