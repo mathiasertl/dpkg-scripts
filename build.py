@@ -182,10 +182,13 @@ def move_files( path, action, package, do_link=True ):
 		link( package, target )
 
 # determine source package format:
-source_format = open( 'debian/source/format', 'r' ).readline().strip()
-if source_format == '3.0 (quilt)':
-	debian_changes = '../%s_%s.debian.tar.gz'%(source,version)
-else:
+try:
+	source_format = open( 'debian/source/format', 'r' ).readline().strip()
+	if source_format == '3.0 (quilt)' and options.dist != "hardy":
+		debian_changes = '../%s_%s.debian.tar.gz'%(source,version)
+	else:
+		debian_changes = '../%s_%s.diff.gz'%(source,version)
+except IOError:
 	debian_changes = '../%s_%s.diff.gz'%(source,version)
 
 # copy/move everything to generic components and symlink in specific components
