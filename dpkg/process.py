@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE
-import env, os
+import env, os, sys
 
 try:   
         import configparser
@@ -45,7 +45,9 @@ def prepare( dist ):
 	print( "fakeroot debian/rules prepare" )
 	prepare_p = Popen( [ 'fakeroot', 'debian/rules', 'prepare' ] )
 	prepare_p.communicate()
-	
+	if prepare_p.returncode != 0:
+		print( "Error: fakeroot debian/rules/prepare exited with non-zero exit-status")
+		sys.exit( prepare_p.returncode )
 
 def finish():
 	env.test_dir()
