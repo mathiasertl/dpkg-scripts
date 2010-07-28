@@ -1,6 +1,25 @@
 import os
 from subprocess import Popen, PIPE
 
+def get_source_format( dist ):
+	old_dists = [ 'hardy', 'intrepid', 'jaunty', 'karmic', 'lenny' ]
+	if dist in old_dists:
+		if os.path.exists( 'debian/source/format' ):
+			return open( 'debian/source/format' ).readline().strip()
+		else:
+			return '1.0'
+	else:
+		# determine source package format:
+		workdir = os.getcwd()
+		dirname = os.path.dirname( workdir )
+		basename = os.path.basename( workdir )
+		os.chdir( dirname )
+		# note that lenny, intrepid, jaunty and karmic don't support --print-format
+		p = Popen( [ 'dpkg-source', '--print-format', basename ], stdout=PIPE )
+		source_format = p.communicate()[0].strip()
+		os.chdir( workdir )
+		return source_format
+
 def test_dir():
 	p = Popen( ['dh_testdir'], stderr=PIPE )
 	stderr = p.communicate()[1].strip()

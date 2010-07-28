@@ -63,7 +63,10 @@ if action == 'where':
 # get some runtime data that we will fail without
 source, binary_pkgs = env.get_packages()
 version = env.get_version()
-upstream_version = version.rsplit( '-', 1 )[0]
+upstream_version, debian_version = version.rsplit( '-', 1 )
+# target of the repository directory:
+base_target = os.path.expanduser( options.dest + '/' + options.dist )
+generic_target = base_target + '/all/all'
 
 # load package config
 package_config_file = '../' + basename + '.cfg'
@@ -78,6 +81,24 @@ if package_config.has_section( 'distros' ):
 			print( "Not building for " + options.dist )
 			sys.exit()
 
+source_format = env.get_source_format( options.dist )
+# get location of source package
+print( 'format: ' + source_format )
+if source_format == '3.0 (quilt)' and options.dist != "hardy":
+	debian_changes = '%s_%s.debian.tar.gz'%(source,version)
+else:
+	debian_changes = '%s_%s.diff.gz'%(source,version)
+changes_path = generic_target + '/' + debian_changes
+print( 'changes: ' + changes_path )
+if os.path.exists( changes_path ):
+	print( "Not building source package, it seems to already exist..." )
+	options.src = False
+
+deb_path = generic_target + '/' + binary_pkgs[0] + '_' + version + '_' + options.arch + '.deb'
+if os.path.exists( deb_path ):
+	print( "Not building binary package, it seems to already exist..." )
+	options.bin = False
+
 control_file = 'debian/control'
 if os.path.exists( 'debian/control.' + options.dist ):
 	control_file = 'debian/control.' + options.dist
@@ -91,6 +112,9 @@ if p.returncode:
 
 if action == 'check':
 	print( "Passed dependency check." )
+	sys.exit()
+
+if not options.src and not options.bin:
 	sys.exit()
 
 # prepare package
@@ -130,10 +154,6 @@ for line in open( 'debian/rules' ).readlines():
 
 # clean up the package:
 process.finish()
-
-# prepare repo directory:
-base_target = os.path.expanduser( options.dest + '/' + options.dist )
-generic_target = base_target + '/all/all'
 
 # link a "file" belonging to package "what" to the components configured
 # in package specific config file
@@ -181,21 +201,11 @@ def move_files( path, action, package, do_link=True ):
 	if do_link:
 		link( package, target )
 
-# determine source package format:
-try:
-	source_format = open( 'debian/source/format', 'r' ).readline().strip()
-	if source_format == '3.0 (quilt)' and options.dist != "hardy":
-		debian_changes = '../%s_%s.debian.tar.gz'%(source,version)
-	else:
-		debian_changes = '../%s_%s.diff.gz'%(source,version)
-except IOError:
-	debian_changes = '../%s_%s.diff.gz'%(source,version)
-
 # copy/move everything to generic components and symlink in specific components
 print( "Building repository tree..." )
 if options.src:
 	move_files( "../%s_%s.orig.tar.gz" %(source, upstream_version), 'copy', 'source' )
-	move_files( debian_changes, 'move', 'source' )
+	move_files( '../' + debian_changes, 'move', 'source' )
 	move_files( "../%s_%s.dsc" %(source, version), 'move', 'source' )
 	move_files( "../%s_%s_source.changes" %(source, version), 'move', 'source' )
 	move_files( "../%s_%s_source.build" %(source, version), 'move', 'source' )
