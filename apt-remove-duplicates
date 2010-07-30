@@ -46,6 +46,9 @@ class source( package_file ):
 		if rest.endswith( '.diff.gz' ):
 			self.version = rest.split( '.diff.gz' )[0]
 			self.suffix = 'diff.gz'
+		elif rest.endswith( '.debian.tar.gz' ):
+			self.version = rest.split( '.debian.tar.gz' )[0]
+			self.suffix = 'debian.tar.gz'
 		elif rest.endswith( '.dsc' ):
 			self.version = rest.split( '.dsc' )[0]
 			self.suffix = 'dsc'
@@ -92,6 +95,8 @@ for file in files:
 	elif file.endswith( 'orig.tar.gz' ):
 		del_duplicates( orig_source, orig_sources, file )
 	elif file.endswith( '.diff.gz' ) or file.endswith( '.dsc' ) or file.endswith( 'source.changes'):
+		del_duplicates( source, sources, file )
+	elif file.endswith( '.debian.tar.gz' ):
 		del_duplicates( source, sources, file )
 	elif file.endswith( '.build'):
 		del_duplicates( package, packages, file )
