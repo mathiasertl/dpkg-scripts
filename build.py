@@ -64,14 +64,15 @@ if action == 'where':
 source, binary_pkgs = env.get_packages()
 version = env.get_version()
 upstream_version, debian_version = version.rsplit( '-', 1 )
-# target of the repository directory:
-base_target = os.path.expanduser( options.dest + '/' + options.dist )
-generic_target = base_target + '/all/all'
 
 # load package config
 package_config_file = '../' + basename + '.cfg'
 package_config = configparser.ConfigParser()
 package_config.read( package_config_file )
+
+# target of the repository directory:
+base_target = os.path.expanduser( options.dest + '/' + options.dist )
+generic_target = base_target + '/all/all'
 
 # see if we build for this distro
 if package_config.has_section( 'distros' ):
