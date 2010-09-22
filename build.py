@@ -145,6 +145,15 @@ if options.bin:
 		options.bin = False
 		print( "Error building binary package!" )
 
+# we get the new version *again* because prepare might have changed the version
+# and the files created in the build-process use that version.
+version = env.get_version()
+upstream_version, debian_version = version.rsplit( '-', 1 )
+if source_format == '3.0 (quilt)' and options.dist != "hardy":
+	debian_changes = '%s_%s.debian.tar.gz'%(source,version)
+else:
+	debian_changes = '%s_%s.diff.gz'%(source,version)
+
 # if we have a "final" target, we execute it
 # TODO: move this to process.finish()
 for line in open( 'debian/rules' ).readlines():
@@ -203,7 +212,6 @@ def move_files( path, action, package, do_link=True ):
 		link( package, target )
 
 # copy/move everything to generic components and symlink in specific components
-print( "Building repository tree..." )
 if options.src:
 	move_files( "../%s_%s.orig.tar.gz" %(source, upstream_version), 'copy', 'source' )
 	move_files( '../' + debian_changes, 'move', 'source' )
@@ -214,7 +222,7 @@ if options.src:
 if options.bin:
 	for package in binary_pkgs:
 		# move .debs
-		pattern = '../%s_%s_*.deb' %(package, env.get_version( package ) )
+		pattern = '../%s_%s_*.deb' %(package, version )
 		files = glob.glob( pattern )
 		for match in files:
 			move_files( match, 'move', package )
