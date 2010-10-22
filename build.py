@@ -82,24 +82,6 @@ if package_config.has_section( 'distros' ):
 			print( "Not building for " + options.dist )
 			sys.exit()
 
-source_format = env.get_source_format( options.dist )
-# get location of source package
-print( 'format: ' + source_format )
-if source_format == '3.0 (quilt)' and options.dist != "hardy":
-	debian_changes = '%s_%s.debian.tar.gz'%(source,version)
-else:
-	debian_changes = '%s_%s.diff.gz'%(source,version)
-changes_path = generic_target + '/' + debian_changes
-print( 'changes: ' + changes_path )
-if os.path.exists( changes_path ):
-	print( "Not building source package, it seems to already exist..." )
-	options.src = False
-
-deb_path = generic_target + '/' + binary_pkgs[0] + '_' + version + '_' + options.arch + '.deb'
-if os.path.exists( deb_path ):
-	print( "Not building binary package, it seems to already exist..." )
-	options.bin = False
-
 control_file = 'debian/control'
 if os.path.exists( 'debian/control.' + options.dist ):
 	control_file = 'debian/control.' + options.dist
@@ -120,6 +102,14 @@ if not options.src and not options.bin:
 
 # prepare package
 process.prepare( options.dist )
+
+deb_path = generic_target + '/' + binary_pkgs[0] + '_' + version + '_' + options.arch + '.deb'
+if os.path.exists( deb_path ):
+	print( "Not building binary package, it seems to already exist..." )
+	options.bin = False
+
+if not options.bin and not options.src:
+	sys.exit(0)
 
 print( "\n\nBuilding target..." )
 debuild_params = [ '--set-envvar', 'DIST=' + options.dist, 
@@ -149,6 +139,8 @@ if options.bin:
 # and the files created in the build-process use that version.
 version = env.get_version()
 upstream_version, debian_version = version.rsplit( '-', 1 )
+# get location of changes file:
+source_format = env.get_source_format( options.dist )
 if source_format == '3.0 (quilt)' and options.dist != "hardy":
 	debian_changes = '%s_%s.debian.tar.gz'%(source,version)
 else:

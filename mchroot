@@ -3,6 +3,10 @@
 error_dists=""
 
 for dir in $(ls); do
+	if [[ -e $dir/.skip ]]; then
+		continue
+	fi
+
 	if [[ ! -d $dir ]]; then
 		continue
 	fi

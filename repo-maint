@@ -20,14 +20,14 @@ dists="$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n | sort)"
 
 # first we create Packages and Packages.gz files (horrific loop!):
 for dist in $dists; do
+	# we might want to skip?
+	if [[ -f $dist/.ignore || -f $dist/.skip ]]; then
+		continue
+	fi
+
 	cd $dist
 	modified=0
 
-	# we might want to skip?
-	if [[ -f .ignore ]]; then
-		cd ../
-		continue
-	fi
 
 	# first we get the common description:
 	if [[ ! -f Release.head ]]; then
@@ -46,9 +46,6 @@ for dist in $dists; do
 			continue
 		fi
 
-		sleep 1s
-		touch .stamp
-	
 		# define an override-file
 		if [[ -f "override" ]]; then
 			override_file="override"
@@ -73,7 +70,6 @@ for dist in $dists; do
 			cat $dir/Packages | gzip -9c > $dir/Packages.gz
 			cat $dir/Packages | bzip2 -z9 > $dir/Packages.bz2
 			modified=1
-
 			
 			release_file="$dir/Release"
 			cat ../Release.head > $release_file
@@ -138,6 +134,7 @@ for dist in $dists; do
 		fi
 
 		common_desc=""
+		touch .stamp
 		cd ../
 	done # end of components loop
 
