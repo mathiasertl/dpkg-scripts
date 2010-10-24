@@ -58,7 +58,7 @@ def finish():
 	f.close()
 
 	# set distribution in topmost entry in changes-file:
-	p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) lucid;/', 'debian/changelog' ] )
+	p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) maverick;/', 'debian/changelog' ] )
 
 	# standards version to most recent
 	p = Popen( [ 'sed', '-i', 's/^Standards-Version:.*/Standards-Version: 3.8.4/', 'debian/control' ] )
