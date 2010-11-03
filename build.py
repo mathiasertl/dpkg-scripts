@@ -214,7 +214,8 @@ if options.src:
 if options.bin:
 	for package in binary_pkgs:
 		# move .debs
-		pattern = '../%s_%s_*.deb' %(package, version )
+		package_version = env.get_version( package )
+		pattern = '../%s_%s_*.deb' %(package, package_version)
 		files = glob.glob( pattern )
 		for match in files:
 			move_files( match, 'move', package )
