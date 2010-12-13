@@ -162,14 +162,15 @@ for dist in $dists; do
 		exit
 	fi
 
+	# ensure good permissions:
+	chown -R root:www-data .
+	chmod -R u+rwX .
+	chmod -R g+rX .
+	chmod -R o-rwx .
+	chmod -R g-w .
+
 	cd ../
 done # end of dists loop
 
 gpgpass=""
 
-# ensure good permissions:
-chown -R root:www-data $repository
-chmod -R u+rwX $repository
-chmod -R g+rX $repository
-chmod -R o-rwx $repository
-chmod -R g-w $repository
