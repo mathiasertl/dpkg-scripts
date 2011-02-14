@@ -67,8 +67,8 @@ for dist in $dists; do
 
 			echo "$dist/$comp/$arch"
 			dpkg-scanpackages -a$arch all $override_file dists/$dist/$comp/ > $dir/Packages
-			cat $dir/Packages | gzip -9c > $dir/Packages.gz
-			cat $dir/Packages | bzip2 -z9 > $dir/Packages.bz2
+			gzip -9c $dir/Packages > $dir/Packages.gz
+			bzip2 -fkz9 $dir/Packages
 			modified=1
 			
 			release_file="$dir/Release"
@@ -114,8 +114,8 @@ for dist in $dists; do
 		
 		echo "$dist/$comp/source"
 		dpkg-scansources all $override_file dists/$dist/$comp/ > source/Sources
-		cat source/Sources | gzip -9c > source/Sources.gz
-		cat source/Sources | bzip2 -z9 > source/Sources.bz2
+		gzip -9c source/Sources > source/Sources.gz
+		bzip2 -fkz9 source/Sources
 		modified=1
 				
 		release_file="source/Release"
