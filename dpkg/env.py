@@ -1,4 +1,4 @@
-import os
+import os, sys
 from subprocess import Popen, PIPE
 
 def get_source_format( dist ):
