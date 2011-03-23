@@ -6,16 +6,16 @@ try:
 except ImportError:
         import ConfigParser as configparser
 
-def prepare( dist ):
+def prepare( dist, dist_config_path ):
 	env.test_dir()
 
 	# load distribution config
-	distrib_config_file = '../../.' + dist + '.cfg'
-	if not os.path.exists( distrib_config_file ):
-        	print( "Error: " + distrib_config_file + ": Does not exist" )
+	if not os.path.exists( dist_config_path ):
+        	print( "Error: " + dist_config_path + ": Does not exist" )
 	        sys.exit(1)
+
 	distrib_config = configparser.ConfigParser()
-	distrib_config.read( distrib_config_file )
+	distrib_config.read( dist_config_path )
 
 	# set compat level to distro-specific value
 	compat = distrib_config.get( 'defaults', 'compat' )

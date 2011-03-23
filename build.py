@@ -5,6 +5,18 @@ from optparse import OptionParser
 from subprocess import *
 from dpkg import *
 
+# import git externals:
+scriptpath = os.path.dirname( os.path.realpath( __file__ ) )
+sys.path.append( os.path.join( scriptpath, 'python-git' ) )
+sys.path.append( os.path.join( scriptpath, 'python-git/git/ext/gitdb/gitdb' ) )
+import git
+
+def exit(status=0):
+	os.chdir( '../' )
+	if repo.head.reference.name != "master":
+		repo.heads.master.checkout()
+	sys.exit( status )
+
 try:
 	import configparser
 except ImportError:
@@ -29,13 +41,13 @@ parser.add_option( '--no-binary', action='store_false', dest='bin', default=True
 	help="Do not build binary packages" )
 options, args = parser.parse_args()
 
-if args == []:
-	action='build'
-elif len(args) == 1:
-	action=args[0] #TODO: valid actions?
-else:
-	print( "Please supply at most one action." )
+if len( args ) != 1:
+	print( "Please supply exactly one directory to build." )
 	sys.exit(1)
+else:
+	if not os.path.exists( args[0] ):
+		print( "%s does not exist."%args[0] )
+		sys.exit(1)
 
 # get distribution and architecture first:
 if not options.dist:
@@ -48,39 +60,33 @@ os.environ['ARCH'] = options.arch
 os.environ['DIST'] = options.dist
 os.environ['DIST_ID'] = options.dist_id
 
-# switch to distro-specific dir, if it exists
-basename = os.path.basename( os.getcwd() )
-distro_build_dir = '../../' + options.dist + '/' + basename
-if os.path.exists( distro_build_dir ):
-	os.chdir( distro_build_dir )
+# initialize git-repo wrapper:
+repo = git.Repo.init( os.getcwd() )
 
-# action 'where':
-if action == 'where':
-	dist = os.path.basename( os.path.dirname( os.getcwd() ) )
-	print( "Building in " + dist + '/' + basename )
-	sys.exit(0)
+# switch to distro-specific branch, if it exists
+for branch in repo.heads:
+	if branch.name == options.dist:
+		branch.checkout()
+
+if os.path.exists( 'skip' ):
+	print( "Not building for %s"%options.dist )
+	exit()
+
+# load package config
+package_config_file = os.path.basename( os.getcwd() ) + '.cfg'
+package_config = configparser.ConfigParser()
+package_config.read( package_config_file )
+
+os.chdir( args[0] )
 
 # get some runtime data that we will fail without
 source, binary_pkgs = env.get_packages()
 version = env.get_version()
 upstream_version, debian_version = version.rsplit( '-', 1 )
 
-# load package config
-package_config_file = '../' + basename + '.cfg'
-package_config = configparser.ConfigParser()
-package_config.read( package_config_file )
-
-# target of the repository directory:
+# target of the apt-repository directory:
 base_target = os.path.expanduser( options.dest + '/' + options.dist )
 generic_target = base_target + '/all/all'
-
-# see if we build for this distro
-if package_config.has_section( 'distros' ):
-	if package_config.has_option( 'distros', 'exclude' ):
-		excludes = package_config.get( 'distros', 'exclude' ).split()
-		if options.dist in excludes:
-			print( "Not building for " + options.dist )
-			sys.exit()
 
 control_file = 'debian/control'
 if os.path.exists( 'debian/control.' + options.dist ):
@@ -91,17 +97,15 @@ p = Popen( check, stderr=PIPE )
 stderr = p.communicate()[1].strip()
 if p.returncode:
 	print( stderr.decode( 'utf_8' ) )
-	sys.exit(1)
+	exit(1)
 
-if action == 'check':
-	print( "Passed dependency check." )
-	sys.exit()
-
+# we wouldn't build anything!
 if not options.src and not options.bin:
-	sys.exit()
+	exit()
 
 # prepare package
-process.prepare( options.dist )
+dist_config_path = os.path.join( scriptpath, 'dist-config', options.dist + '.cfg' )
+process.prepare( options.dist, dist_config_path )
 
 deb_path = generic_target + '/' + binary_pkgs[0] + '_' + version + '_' + options.arch + '.deb'
 if os.path.exists( deb_path ):
@@ -109,7 +113,7 @@ if os.path.exists( deb_path ):
 	options.bin = False
 
 if not options.bin and not options.src:
-	sys.exit(0)
+	exit()
 
 print( "\n\nBuilding target..." )
 debuild_params = [ '--set-envvar', 'DIST=' + options.dist, 
@@ -224,3 +228,6 @@ if options.bin:
 	# for packages we do not link for every component)
 	move_files( '../%s_%s_%s.changes' %(source, version, options.arch), 'move', source, False )
 	move_files( '../%s_%s_%s.build' %(source, version, options.arch), 'move', source )
+
+# switch back to master branch
+exit()
