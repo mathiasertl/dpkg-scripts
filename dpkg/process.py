@@ -49,7 +49,7 @@ def prepare( dist, dist_config_path ):
 		print( "Error: fakeroot debian/rules/prepare exited with non-zero exit-status")
 		sys.exit( prepare_p.returncode )
 
-def finish():
+def finish( config_path ):
 	env.test_dir()
 
 	# reset package to a nice default state
@@ -57,9 +57,15 @@ def finish():
 	f.write( '7\n' )
 	f.close()
 
+	last_distro = env.DISTROS[-1]
+	config_path = os.path.join( config_path, last_distro + '.cfg' )
+	distrib_config = configparser.ConfigParser()
+	distrib_config.read( config_path )
+	standards = distrib_config.get( 'defaults', 'standards' )
+
 	# set distribution in topmost entry in changes-file:
-	p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) maverick;/', 'debian/changelog' ] )
+	p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) %s;/'%last_distro, 'debian/changelog' ] )
 
 	# standards version to most recent
-	p = Popen( [ 'sed', '-i', 's/^Standards-Version:.*/Standards-Version: 3.8.4/', 'debian/control' ] )
+	p = Popen( [ 'sed', '-i', 's/^Standards-Version:.*/Standards-Version: %s/'%(standards), 'debian/control' ] )
 	p.communicate()

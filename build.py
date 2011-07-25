@@ -121,7 +121,8 @@ if not options.src and not options.bin:
 	exit()
 
 # prepare package
-dist_config_path = os.path.join( scriptpath, 'dist-config', options.dist + '.cfg' )
+config_path = os.path.join( scriptpath, 'dist-config' )
+dist_config_path = os.path.join( config_path, options.dist + '.cfg' )
 process.prepare( options.dist, dist_config_path )
 
 deb_path = generic_target + '/' + binary_pkgs[0] + '_' + version + '_' + options.arch + '.deb'
@@ -176,7 +177,7 @@ for line in open( 'debian/rules' ).readlines():
 		final_make.communicate()
 
 # clean up the package:
-process.finish()
+process.finish( config_path )
 
 # link a "file" belonging to package "what" to the components configured
 # in package specific config file
