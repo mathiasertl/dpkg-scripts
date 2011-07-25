@@ -57,7 +57,11 @@ for dist in $dists; do
 		# this is for the binary packages:
 		dirs=$(find . -maxdepth 1 -mindepth 1 -name "binary*" -type d -printf %P\\n)
 		if [[ -z $dirs ]]; then
-			echo "Warning: No binary-ARCH dirs found in dists/$dist/$comp"
+			echo "    WARNING: No binary-ARCH dirs found in dists/$dist/$comp"
+		fi
+
+		if [[ $(ls all/ | grep -c "fsinf-keyring") -eq 0 ]]; then
+			echo "    WARNING: dists/$dist/$comp does not have the fsinf-keyring package."
 		fi
 
 		apt-remove-duplicates -d all
