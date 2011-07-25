@@ -1,6 +1,29 @@
 import os, sys
 from subprocess import Popen, PIPE
 
+# available distros, in order of release
+DISTROS = [ 'hardy', 'lenny', 'jaunty', 'karmic', 'lucid', 'maverick', 'natty', 'squeeze', 'wheezy' ]
+
+def would_build( config, dist ):
+	if not config.has_section( 'distros' ):
+		return True
+	build_distros = DISTROS
+
+	if config.has_option( 'distros', 'until' ):
+		until = config.get( 'distros', 'until' )
+		build_distros = build_distros[:build_distros.index( until )+1 ]
+	if config.has_option( 'distros', 'from' ):
+		until = config.get( 'distros', 'from' )
+		build_distros = build_distros[build_distros.index( until ): ]
+	if config.has_option( 'distros', 'exclude' ):
+		exclude = config.get( 'distros', 'exclude' ).split()
+		build_distros = [ d for d in build_distros if d not in exclude ]
+
+	if dist in build_distros:
+		return True
+	else:
+		return False
+	
 def get_source_format( dist ):
 	old_dists = [ 'hardy', 'intrepid', 'jaunty', 'karmic', 'lenny' ]
 	if dist in old_dists:
@@ -61,6 +84,42 @@ def get_binary_packages():
 
 def get_packages():
 	return get_source_package(), get_binary_packages()
+
+def get_package_details():
+	test_dir()
+	f = open( 'debian/control', 'r' )
+	lines = [ l for l in f.readlines() ]
+	packages = {}
+	field, value, pkg, pkg_name = None, None, None, None
+	for line in lines:
+		if not line.strip():
+			continue
+
+		if line.startswith("Source: " ):
+			pkg_name = 'source'
+			pkg = {'Source': line.split( ": ", 1 )[1].strip() }
+			continue
+
+		if line.startswith( "Package: " ):
+			packages[pkg_name] = pkg
+
+			pkg_name = line.split( ": ", 1 )[1].strip()
+			pkg = {'Package': line.split( ": ", 1 )[1].strip() }
+			continue
+
+		if ':' in line and not line.startswith( ' ' ):
+			field, value = line.split( ": ", 1 )
+			field.strip()
+			value.strip()
+
+			pkg[field] = value.strip()
+		else:
+			pkg[field] += " %s"%line.strip()
+
+	packages[pkg_name] = pkg
+
+	return packages
+	
 
 def get_version( package=None ):
 	test_dir()
