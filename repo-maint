@@ -49,6 +49,7 @@ for dist in $dists; do
 		# define an override-file
 		if [[ -f "override" ]]; then
 			override_file="override"
+			sort -u override -o override
 		else
 			echo "Warning: no override file (dists/$dist/$comp/override) found, using /dev/null instead."
 			override_file="/dev/null"
