@@ -82,8 +82,6 @@ if set( ['all'] ) == archs and options.arch != 'amd64':
 	print( 'Only arch-independent packages found and not on amd64!' )
 	exit()
 
-exit()
-
 # get some runtime data that we will fail without
 source, binary_pkgs = env.get_packages()
 version = env.get_version()
