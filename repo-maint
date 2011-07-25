@@ -91,27 +91,6 @@ for dist in $dists; do
 			fi
 		done
 
-		# This makes some very good error-checking:
-		for src_pkg in $(ls all/*.dsc); do
-			output=$(gpg --logger-fd 1 --verify $src_pkg)
-			if [[ "$?" != "0" ]]; then
-				echo "!!! Error: Signature of $src_pkg could not be verified!!!"
-				echo -e "Output was:\n$output"
-				exit
-			fi
-			
-			# this will grep the checksum lines from the .dsc file,
-			# sed them into md5sum compatible format and send that
-			# to md5sum. Note that stdout is surpressed for less
-			# bogus-output.
-			grep "^ [0-9a-z]\{32\} [0-9]* " $src_pkg |\
-				 sed "s/^ \([0-9a-z]\{32\}\) [0-9]* /\1  all\//" |\
-				 md5sum -c - > /dev/null
-			if [[ "$?" != "0" ]]; then
-				echo "!!! Error: Checksum found in $src_pkg does not match, see above!"
-			fi
-		done
-
 		if [[ ! -d source ]]; then
 			mkdir source
 		fi
