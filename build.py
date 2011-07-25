@@ -61,28 +61,47 @@ os.environ['DIST'] = options.dist
 os.environ['DIST_ID'] = options.dist_id
 
 # initialize git-repo wrapper:
-repo = git.Repo.init( os.getcwd() )
+try:
+	repo = git.Repo.init( os.getcwd() )
+except OSError, e:
+	print( e )
+	print( "Maybe git not installed?" )
+	sys.exit(1)
 
 # switch to distro-specific branch, if it exists
 for branch in repo.heads:
 	if branch.name == options.dist:
 		branch.checkout()
 
-if os.path.exists( 'skip' ):
-	print( "Not building for %s"%options.dist )
+os.chdir( args[0] )
+
+# see if we have only arch-independent packages, if yes, only build on amd64:
+details = env.get_package_details()
+archs = set( [ v['Architecture'] for v in details.values() if 'Source' not in v ] )
+if set( ['all'] ) == archs and options.arch != 'amd64':
+	print( 'Only arch-independent packages found and not on amd64!' )
 	exit()
 
-# load package config
-package_config_file = os.path.basename( os.getcwd() ) + '.cfg'
-package_config = configparser.ConfigParser()
-package_config.read( package_config_file )
-
-os.chdir( args[0] )
+exit()
 
 # get some runtime data that we will fail without
 source, binary_pkgs = env.get_packages()
 version = env.get_version()
 upstream_version, debian_version = version.rsplit( '-', 1 )
+
+# load various config-files
+top_dir = os.path.dirname( os.getcwd() )
+global_config_file = os.path.join( top_dir, 'config.cfg' )
+package_config_file = os.path.join( top_dir, source + '.cfg' )
+version_config_file = os.path.join( top_dir, os.path.basename( os.getcwd() ) + '.cfg' )
+config_file_paths = [ global_config_file, package_config_file, version_config_file ]
+package_config = configparser.ConfigParser()
+package_config.read( config_file_paths )
+
+# check if we wuild build in this distro
+if not env.would_build( package_config, options.dist ):
+	print( "Not building on %s."%options.dist )
+	exit()
 
 # target of the apt-repository directory:
 base_target = os.path.expanduser( options.dest + '/' + options.dist )
