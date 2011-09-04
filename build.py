@@ -168,14 +168,6 @@ if source_format == '3.0 (quilt)' and options.dist != "hardy":
 else:
 	debian_changes = '%s_%s.diff.gz'%(source,version)
 
-# if we have a "final" target, we execute it
-# TODO: move this to process.finish()
-for line in open( 'debian/rules' ).readlines():
-	if line.startswith( 'final:' ):
-		print( 'debian/rules final' )
-		final_make = Popen( [ 'debian/rules', 'final' ] )
-		final_make.communicate()
-
 # clean up the package:
 process.finish( config_path )
 
@@ -246,6 +238,14 @@ if options.bin:
 	# for packages we do not link for every component)
 	move_files( '../%s_%s_%s.changes' %(source, version, options.arch), 'move', source, False )
 	move_files( '../%s_%s_%s.build' %(source, version, options.arch), 'move', source )
+
+# if we have a "final" target, we execute it
+for line in open( 'debian/rules' ).readlines():
+	if line.startswith( 'final:' ):
+		print( 'debian/rules final' )
+		final_make = Popen( [ 'debian/rules', 'final' ] )
+		final_make.communicate()
+
 
 # switch back to master branch
 exit()
