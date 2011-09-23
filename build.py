@@ -41,14 +41,6 @@ parser.add_option( '--no-binary', action='store_false', dest='bin', default=True
 	help="Do not build binary packages" )
 options, args = parser.parse_args()
 
-if len( args ) != 1:
-	print( "Please supply exactly one directory to build." )
-	sys.exit(1)
-else:
-	if not os.path.exists( args[0] ):
-		print( "%s does not exist."%args[0] )
-		sys.exit(1)
-
 # get distribution and architecture first:
 if not options.dist:
 	options.dist = env.get_distribution()
@@ -73,7 +65,31 @@ for branch in repo.heads:
 	if branch.name == options.dist:
 		branch.checkout()
 
-os.chdir( args[0] )
+# decide on directory to build:
+directory = None
+
+def get_directory( arg ):
+	if os.path.exists( arg ):
+		return arg
+
+	dirs = [n for n in os.listdir('.') if os.path.isdir(n)]
+	candidates = [d for d in dirs if re.match('%s-[0-9]+'%arg, d)]
+	return sorted( candidates )[-1]
+
+
+if len( args ) == 0:
+	dirs = [ node for node in os.listdir( '.' ) if os.path.isdir( node ) ]
+	if len( dirs ) == 1:
+		directory = dirs[0]
+	else:
+		directory = get_directory( os.path.basename( os.getcwd() ) )
+elif len( args ) == 1:
+	directory = get_directory( args[0] )
+else:
+	print( "Please name at most one directory to build." )
+	sys.exit(1)
+
+os.chdir( directory )
 
 # see if we have only arch-independent packages, if yes, only build on amd64:
 details = env.get_package_details()
