@@ -235,7 +235,8 @@ def move_files( path, action, package, do_link=True ):
 
 # copy/move everything to generic components and symlink in specific components
 if options.src:
-	move_files( "../%s_%s.orig.tar.gz" %(source, upstream_version), 'copy', 'source' )
+	orig_source = ['../%s'%f for f in os.listdir('..') if f.startswith( "%s_%s.orig" %(source, upstream_version) ) ][0]
+	move_files( orig_source, 'copy', 'source' )
 	move_files( '../' + debian_changes, 'move', 'source' )
 	move_files( "../%s_%s.dsc" %(source, version), 'move', 'source' )
 	move_files( "../%s_%s_source.changes" %(source, version), 'move', 'source' )

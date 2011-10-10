@@ -30,12 +30,12 @@ if args.add:
     cursor.execute( '''INSERT INTO packages VALUES (?, ?, ?)''', args.add )
     conn.commit()
 elif args.list:
-    cursor.execute( '''SELECT * FROM packages''' )
+    cursor.execute( '''SELECT * FROM packages ORDER BY package''' )
     for row in cursor:
         print( '%s %s %s'%row )
     conn.commit()
 elif args.rm:
-    cursor.execute( '''DELETE FROM packages WHERE package=?''', args.rm )
+    cursor.execute( '''DELETE FROM packages WHERE package=?''', (args.rm,) )
     conn.commit()
 else:
     if not os.path.exists( args.component ):
