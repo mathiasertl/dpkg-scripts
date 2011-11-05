@@ -67,10 +67,10 @@ def get_lsb_value( var ):
 	return line[0].strip().split( '=', 1 )[1]
 	
 def get_distribution():
-	return get_command_output( [ 'lsb_release', '-sc' ] )
+	return get_command_output( [ 'lsb_release', '-sc' ] ).lower()
 
 def get_dist_id():
-	return get_command_output( [ 'lsb_release', '-si' ] )
+	return get_command_output( [ 'lsb_release', '-si' ] ).lower()
 
 def get_source_package():
 	test_dir()
