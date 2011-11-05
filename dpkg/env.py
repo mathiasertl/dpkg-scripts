@@ -43,6 +43,11 @@ def get_source_format( dist ):
 		os.chdir( workdir )
 		return source_format
 
+def get_command_output( cmd ):
+	p = Popen( cmd, stdout=PIPE )
+	stdout = p.communicate()[0].strip()
+	return stdout
+
 def test_dir():
 	p = Popen( ['dh_testdir'], stderr=PIPE )
 	stderr = p.communicate()[1].strip()
@@ -51,9 +56,7 @@ def test_dir():
 		sys.exit(1)
 
 def get_architecture():
-	p = Popen( [ 'dpkg-architecture', '-qDEB_BUILD_ARCH' ], stdout=PIPE )
-	stdout = p.communicate()[0].strip()
-	return stdout
+	return get_command_output( [ 'dpkg-architecture', '-qDEB_BUILD_ARCH' ] )
 
 def get_lsb_value( var ):
 	f = open( '/etc/lsb-release' )
@@ -64,10 +67,10 @@ def get_lsb_value( var ):
 	return line[0].strip().split( '=', 1 )[1]
 	
 def get_distribution():
-	return get_lsb_value( 'DISTRIB_CODENAME' )
+	return get_command_output( [ 'lsb_release', '-sc' ] )
 
 def get_dist_id():
-	return get_lsb_value( 'DISTRIB_ID' )
+	return get_command_output( [ 'lsb_release', '-si' ] )
 
 def get_source_package():
 	test_dir()
