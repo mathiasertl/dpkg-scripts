@@ -44,14 +44,6 @@ os.environ['ARCH'] = options.arch
 os.environ['DIST'] = options.dist
 os.environ['DIST_ID'] = options.dist_id
 
-# initialize git-repo wrapper:
-try:
-	repo = git.Repo.init( os.getcwd() )
-except OSError, e:
-	print( e )
-	print( "Maybe git not installed?" )
-	sys.exit(1)
-
 # decide on directory to build:
 directory = None
 
