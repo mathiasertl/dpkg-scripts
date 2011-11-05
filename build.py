@@ -5,12 +5,6 @@ from optparse import OptionParser
 from subprocess import *
 from dpkg import *
 
-# import git externals:
-scriptpath = os.path.dirname( os.path.realpath( __file__ ) )
-sys.path.append( os.path.join( scriptpath, 'python-git' ) )
-sys.path.append( os.path.join( scriptpath, 'python-git/git/ext/gitdb/gitdb' ) )
-import git
-
 def exit(status=0):
 	os.chdir( '../' )
 	sys.exit( status )
