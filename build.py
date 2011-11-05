@@ -55,7 +55,6 @@ def get_directory( arg ):
 	candidates = [d for d in dirs if re.match('%s-[0-9]+'%arg, d)]
 	return sorted( candidates )[-1]
 
-
 if len( args ) == 0:
 	dirs = [ node for node in os.listdir( '.' ) if os.path.isdir( node ) ]
 	if len( dirs ) == 1:
@@ -100,12 +99,7 @@ if not env.would_build( package_config, options.dist ):
 base_target = os.path.expanduser( options.dest + '/' + options.dist )
 generic_target = base_target + '/all/all'
 
-control_file = 'debian/control'
-if os.path.exists( 'debian/control.' + options.dist ):
-	control_file = 'debian/control.' + options.dist
-
-check = [ 'dpkg-checkbuilddeps', control_file ]
-p = Popen( check, stderr=PIPE )
+p = Popen( ['dpkg-checkbuilddeps'], stderr=PIPE )
 stderr = p.communicate()[1].strip()
 if p.returncode:
 	print( stderr.decode( 'utf_8' ) )
