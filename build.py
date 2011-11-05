@@ -155,10 +155,6 @@ if options.bin:
 		options.bin = False
 		print( "Error building binary package!" )
 
-# we get the new version *again* because prepare might have changed the version
-# and the files created in the build-process use that version.
-version = env.get_version()
-upstream_version, debian_version = version.rsplit( '-', 1 )
 # get location of changes file:
 source_format = env.get_source_format( options.dist )
 if source_format == '3.0 (quilt)' and options.dist != "hardy":
