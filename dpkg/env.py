@@ -23,6 +23,32 @@ def would_build( config, dist ):
 		return True
 	else:
 		return False
+
+def get_package_directory( args ):
+	"""
+	Get the directory containing the source package
+	"""
+	def get_directory( arg ):
+		if os.path.exists( arg ):
+			return arg
+
+		dirs = [n for n in os.listdir('.') if os.path.isdir(n)]
+		candidates = [d for d in dirs if re.match('%s-[0-9]+'%arg, d)]
+		return sorted( candidates )[-1]
+
+	if len( args ) == 0:
+		dirs = [ node for node in os.listdir( '.' ) if os.path.isdir( node ) ]
+		if len( dirs ) == 1:
+			directory = dirs[0]
+		else:
+			directory = get_directory( os.path.basename( os.getcwd() ) )
+	elif len( args ) == 1:
+		directory = get_directory( args[0] )
+	else:
+		print( "Please name at most one directory to build." )
+		sys.exit(1)
+
+	return directory
 	
 def get_source_format( dist ):
 	old_dists = [ 'hardy', 'intrepid', 'jaunty', 'karmic', 'lenny' ]
