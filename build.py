@@ -13,8 +13,6 @@ import git
 
 def exit(status=0):
 	os.chdir( '../' )
-	if repo.head.reference.name != "master":
-		repo.heads.master.checkout()
 	sys.exit( status )
 
 try:
@@ -59,11 +57,6 @@ except OSError, e:
 	print( e )
 	print( "Maybe git not installed?" )
 	sys.exit(1)
-
-# switch to distro-specific branch, if it exists
-for branch in repo.heads:
-	if branch.name == options.dist:
-		branch.checkout()
 
 # decide on directory to build:
 directory = None
