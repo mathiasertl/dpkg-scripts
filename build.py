@@ -8,12 +8,16 @@ from dpkg import *
 orig_directory = os.getcwd()
 scriptpath = os.path.dirname( os.path.realpath( __file__ ) )
 temp_directory = None
+no_rm = False
 
 def exit(status=0):
 	os.chdir( orig_directory )
 	if temp_directory:
-		print( 'rm -r %s'%temp_directory )
-		shutil.rmtree( temp_directory )
+		if no_rm:
+			print( "temporary directory is: %s"%temp_directory )
+		else:
+			print( 'rm -r %s'%temp_directory )
+			shutil.rmtree( temp_directory )
 	sys.exit( status )
 
 def excepthook(exctype, value, traceback):
@@ -27,6 +31,8 @@ except ImportError:
 parser = OptionParser()
 parser.add_option( '--dest', default=os.path.expanduser( '~/build/'),
 	help="Move the packages to this directory (Default: ~/build/)" )
+parser.add_option( '--no-rm', default=False, action='store_true',
+	help="Do not remove temporary build directory" )
 parser.add_option( '--dist',
 	help="Override distribution codename detection. By default, this is the"
 	"value of DISTRIB_CODENAME in /etc/lsb-release, e.g. 'lenny' or "
@@ -53,6 +59,7 @@ if not options.dist_id:
 os.environ['ARCH'] = options.arch
 os.environ['DIST'] = options.dist
 os.environ['DIST_ID'] = options.dist_id
+no_rm = options.no_rm
 
 # decide on directory to build:
 package_directory = env.get_package_directory( args )
@@ -65,23 +72,12 @@ if set( ['all'] ) == archs and options.arch != 'amd64':
 	print( 'Only arch-independent packages found and not on amd64!' )
 	exit()
 
-# if we have a "prepare" target, we execute it
-for line in open( 'debian/rules' ).readlines():
-	if line.startswith( 'prepare:' ):
-		print( 'debian/rules prepare' )
-		p = Popen( [ 'debian/rules', 'prepare' ] )
-		p.communicate()
-		break
-
 # get some runtime data that we will fail without
 source, binary_pkgs = env.get_packages()
-version = env.get_version()
-upstream_version, debian_version = version.rsplit( '-', 1 )
 
-os.chdir( orig_directory )
-
-# load various config-files
-config_file_paths = [ 'config.cfg', source + '.cfg', package_directory + '.cfg' ]
+config_file_paths = [ os.path.join(orig_directory, 'config.cfg'),
+	os.path.join(orig_directory, source + '.cfg'), 
+	os.path.join(orig_directory, package_directory + '.cfg') ]
 package_config = configparser.ConfigParser( {'tar-args': '--strip=1'} )
 package_config.read( config_file_paths )
 
@@ -90,11 +86,24 @@ if not env.would_build( package_config, options.dist ):
 	print( "Not building on %s."%options.dist )
 	exit()
 
-p = Popen( ['dpkg-checkbuilddeps', package_directory + '/debian/control'], stderr=PIPE )
+# if we have a "prepare" target, we execute it
+for line in open( 'debian/rules' ).readlines():
+	if line.startswith( 'prepare:' ):
+		print( 'debian/rules prepare' )
+		p = Popen( [ 'debian/rules', 'prepare' ] )
+		p.communicate()
+		break
+
+version = env.get_version()
+upstream_version, debian_version = version.rsplit( '-', 1 )
+
+p = Popen( ['dpkg-checkbuilddeps' ], stderr=PIPE )
 stderr = p.communicate()[1].strip()
 if p.returncode:
 	print( stderr.decode( 'utf_8' ) )
 	exit(1)
+
+os.chdir( orig_directory )
 
 # get original source
 orig_source = process.get_source( package_directory, source, upstream_version )

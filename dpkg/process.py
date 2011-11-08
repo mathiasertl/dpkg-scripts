@@ -85,7 +85,7 @@ def finish( config_path ):
 
 	# reset package to a nice default state
 	f = open( 'debian/compat', 'w' )
-	f.write( '7\n' )
+	f.write( '8\n' )
 	f.close()
 
 	last_distro = env.DISTROS[-1]
