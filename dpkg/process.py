@@ -29,10 +29,12 @@ def get_source( pkg_dir, src_package_name, version ):
 def extract_source( source, config ):
 	if source.endswith( 'tar.gz' ):
 		cmd = ['tar', 'xzf' ]
-	elif source.endswith( 'tar.bz' ):
+	elif source.endswith( 'tar.bz2' ):
 		cmd = [ 'tar', 'xjf' ]
 	elif source.endswith( 'tar.xz' ):
 		cmd = [ 'tar', 'xJf' ]
+	else:
+		raise RuntimeError( "Unrecognized file format: %s"%source )
 	cmd += [ source ]
 	if config.has_section( 'source' ):
 		cmd += config.get( 'source', 'tar-args' ).split(' ')
