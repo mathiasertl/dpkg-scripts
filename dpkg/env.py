@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, re
 from subprocess import Popen, PIPE
 
 # available distros, in order of release
