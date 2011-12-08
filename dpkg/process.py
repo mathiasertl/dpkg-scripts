@@ -90,15 +90,9 @@ def finish( config_path ):
 	f.write( '8\n' )
 	f.close()
 
-	last_distro = env.DISTROS[-1]
-	config_path = os.path.join( config_path, last_distro + '.cfg' )
-	distrib_config = configparser.ConfigParser()
-	distrib_config.read( config_path )
-	standards = distrib_config.get( 'defaults', 'standards' )
-
 	# set distribution in topmost entry in changes-file:
-	p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) %s;/'%last_distro, 'debian/changelog' ] )
+	p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) unstable;/', 'debian/changelog' ] )
 
 	# standards version to most recent
-	p = Popen( [ 'sed', '-i', 's/^Standards-Version:.*/Standards-Version: %s/'%(standards), 'debian/control' ] )
+	p = Popen( [ 'sed', '-i', 's/^Standards-Version:.*/Standards-Version: 3.9.2/', 'debian/control' ] )
 	p.communicate()
