@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import os, sys, subprocess, optparse
+import os, re, sys, subprocess, optparse
 
 parser = optparse.OptionParser()
 parser.add_option( '-d', '--directory',
@@ -92,7 +92,7 @@ for file in files:
 		del_duplicates( package, packages, file )
 	elif file.endswith( '.changes' ) and not file.endswith( 'source.changes' ):
 		del_duplicates( package, packages, file )
-	elif file.endswith( 'orig.tar.gz' ):
+	elif re.search('.orig.tar', file):
 		del_duplicates( orig_source, orig_sources, file )
 	elif file.endswith( '.diff.gz' ) or file.endswith( '.dsc' ) or file.endswith( 'source.changes'):
 		del_duplicates( source, sources, file )

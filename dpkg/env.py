@@ -37,6 +37,9 @@ def get_package_directory( args ):
 		return sorted( candidates )[-1]
 
 	if len( args ) == 0:
+		if os.path.exists('debian'):
+			return '.' # we already are in the package directory
+
 		dirs = [ node for node in os.listdir( '.' ) if os.path.isdir( node ) ]
 		if len( dirs ) == 1:
 			directory = dirs[0]
@@ -162,3 +165,24 @@ def get_version( package=None ):
 	p4 = Popen( [ 'sed', 's/.*://' ], stdin=p3.stdout, stdout=PIPE )
 	version = p4.communicate()[0].strip()
 	return version
+
+def get_package_files(path, source_pkg, version, arch):
+	changes_file = '%s/%s_%s_%s.changes' % (path, source_pkg, version, arch)
+	files = [os.path.basename(changes_file)]
+	section = False
+	for line in open(changes_file).readlines():
+		if line.strip() == "Files:":
+			section = True
+			continue
+		if not section:
+			continue
+		if section and not line.startswith(' '):
+			break
+
+		files.append(line.strip().split()[4])
+
+	build_file = '%s/%s_%s_%s.build' % (path, source_pkg, version, arch)
+	if os.path.exists(build_file):
+		files.append(os.path.basename(build_file))
+
+	return files
