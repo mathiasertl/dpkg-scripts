@@ -34,7 +34,7 @@ class orig_source( package_file ):
 		self.filename = filename
 		a, b = filename.split( '_' )
 		self.name = a
-		self.version = b.split( '.orig.tar.gz', 1 )[0]
+		self.version = b[:.index('.orig')]
 	
 	def key(self):
 		return self.name
