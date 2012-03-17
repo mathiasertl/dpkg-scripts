@@ -60,6 +60,7 @@ else:
             data = pkg_data[package]
             file.write( '%s %s %s\n'%(package, data[0], data[1]) )
         else:
+            print('%s: Unknown package' % package)
             continue
     
     file.close()
