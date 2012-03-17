@@ -13,7 +13,7 @@ set -x
 find /home/mati/build | grep spectrum2.*git | xargs rm -f 2> /dev/null
 find /home/mati/build | grep libtransport.*git | xargs rm -f 2> /dev/null
 # remove empty directories
-find -depth -empty -type d -exec rmdir {} \;
+find /home/mati/build -depth -empty -type d -exec rmdir {} \;
 
 # build packages
 cd /chroot
