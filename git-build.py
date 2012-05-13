@@ -17,6 +17,12 @@ if not os.path.exists('debian'):
 	print('Error: debian: Directory not found.')
 	sys.exit(1)
 
+# parse command-line:
+parser = OptionParser()
+parser.add_option('--keep-temp-dir', action='store_true', default=False,
+	help="Do not delete temporary build directory after build.")
+options, args = parser.parse_args()
+
 # default values:
 gbp_args = []
 
@@ -45,9 +51,11 @@ if not env.would_build(config, dist):
 	sys.exit()
 
 # exit handler
-def exit(orig_dir, temp_directory):
+def exit(orig_dir, temp_directory, keep):
 	os.chdir(orig_dir)
-	if os.path.exists(temp_directory):
+	if keep:
+		print('Temporary directory is %s' % temp_directory)
+	elif os.path.exists(temp_directory):
 		print('Removing %s...' % temp_directory)
 		shutil.rmtree(temp_directory)
 
@@ -58,7 +66,7 @@ if not os.path.exists(export_dir):
 
 # create temporary directory:
 temp_directory = tempfile.mkdtemp()
-atexit.register(exit, orig_dir, temp_directory)
+atexit.register(exit, orig_dir, temp_directory, options.keep_temp_dir)
 
 # move to demporary directory:
 temp_dest = os.path.join(temp_directory, os.path.basename(os.getcwd()))
