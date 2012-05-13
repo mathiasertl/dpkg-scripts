@@ -90,6 +90,17 @@ if config.has_option('DEFAULT', 'prepare'):
 	p = Popen(shlex.split(cmd))
 	p.communicate()
 
+if config.has_option('DEFAULT', 'append-dist'):
+	append_dist = config.getboolean('DEFAULT', 'append-dist')
+else:
+	append_dist = False
+
+if append_dist:
+	cmd = ['sed', '-i', '1s/-\([^)]\)/-\\1~%s/' % dist, 'debian/changelog']
+	print(' '.join(cmd))
+	p = Popen(cmd)
+	p.communicate()
+
 # package details:
 version = env.get_version()
 upstream_version, debian_version = version.rsplit('-', 1)
