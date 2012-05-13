@@ -59,16 +59,11 @@ def exit(orig_dir, temp_directory, keep):
 		print('Removing %s...' % temp_directory)
 		shutil.rmtree(temp_directory)
 
-# create export_dir
-export_dir = os.path.join(build_dir, '%s/all/all/' % dist)
-if not os.path.exists(export_dir):
-	os.makedirs(export_dir)
-
 # create temporary directory:
 temp_directory = tempfile.mkdtemp()
 atexit.register(exit, orig_dir, temp_directory, options.keep_temp_dir)
 
-# move to demporary directory:
+# move to temporary directory:
 temp_dest = os.path.join(temp_directory, os.path.basename(os.getcwd()))
 shutil.copytree( '.', temp_dest )
 os.chdir(temp_dest)
@@ -102,6 +97,11 @@ git_commit = ['git', 'commit', '-a', '-m', 'prepare package for %s' % dist ]
 p = Popen(git_commit, stderr=PIPE)
 print(' '.join(git_commit))
 p.communicate()
+
+# create export_dir
+export_dir = os.path.join(build_dir, '%s/all/all/' % dist)
+if not os.path.exists(export_dir):
+	os.makedirs(export_dir)
 
 # build package
 git_buildpackage = ['git-buildpackage', '--git-export-dir=%s' % export_dir ] + gbp_args
