@@ -50,7 +50,7 @@ def extract_source( source, config ):
 def get_branch(repo, config, dist):
 	# see if config-file gives a branch:
 	option = '%s-branch' % dist
-	if config.hasoption(option):
+	if config.has_option('DEFAULT', option):
 		branch_name = config.get('DEFAULT', option)
 		if hasattr(repo.heads, branch_name):
 			return getattr(repo.heads, branch_name)
@@ -62,7 +62,7 @@ def get_branch(repo, config, dist):
 		return getattr(repo.heads, dist)
 	return None
 
-def prepare( dist, dist_config_path ):
+def prepare(dist, dist_config_path, config=None):
 	env.test_dir()
 
 	# load distribution config
@@ -96,6 +96,20 @@ def prepare( dist, dist_config_path ):
 	p1 = Popen( [ 'find', 'debian/', '-maxdepth', '1', '-type', 'f' ], stdout=PIPE )
 	p2 = Popen( [ 'xargs', 'sed', '-i', 's/__DATE__/' + timestamp + '/' ], stdin = p1.stdout )
 	p2.communicate()
+
+	if config:
+		if config.has_option('DEFAULT', 'prepare'):
+		        cmd = config.get('DEFAULT', 'prepare')
+		        print(cmd)
+	        	p = Popen(shlex.split(cmd))
+		        p.communicate()
+
+		if config.has_option('DEFAULT', 'append-dist'):
+		        if config.getboolean('DEFAULT', 'append-dist'):
+		        	cmd = ['sed', '-i', '1s/-\([^)]\)/-\\1~%s/' % dist, 'debian/changelog']
+			        print(' '.join(cmd))
+			        p = Popen(cmd)
+			        p.communicate()
 
 def finish( config_path ):
 	env.test_dir()
