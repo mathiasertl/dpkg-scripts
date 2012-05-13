@@ -47,6 +47,21 @@ def extract_source( source, config ):
 	if p.returncode != 0:
 		raise RuntimeError( "Error: Exit status was %s"%p.returncode )
 
+def get_branch(repo, config, dist):
+	# see if config-file gives a branch:
+	option = '%s-branch' % dist
+	if config.hasoption(option):
+		branch_name = config.get('DEFAULT', option)
+		if hasattr(repo.heads, branch_name):
+			return getattr(repo.heads, branch_name)
+		else:
+			raise RuntimeError('%s: Branch does not exist.' % branch_name)
+
+	# see if dist-name branch exists:
+	if hasattr(repo.heads, dist):
+		return getattr(repo.heads, dist)
+	return None
+
 def prepare( dist, dist_config_path ):
 	env.test_dir()
 

@@ -28,14 +28,13 @@ def exit(status=0):
 	sys.exit(status)
 
 gbp_args = []
-if hasattr(repo.heads, dist):
-	branch = getattr(repo.heads, dist)
+branch = process.get_branch(repo, config, dist)
+if branch:
 	print('Using branch %s...' % branch.name)
+	gbp_args += ['--git-debian-branch=%s' % branch.name]
 
 	if repo.head.reference != branch:
 		branch.checkout()
-
-	gbp_args += ['--git-debian-branch=%s' % branch.name]
 
 if not os.path.exists('debian'):
 	print('Error: debian: Directory not found.')
