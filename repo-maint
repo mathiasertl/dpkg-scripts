@@ -55,7 +55,7 @@ for dist in $dists; do
 			echo "    WARNING: No binary-ARCH dirs found in dists/$dist/$comp"
 		fi
 
-		if [[ $(ls all/ | grep -c "fsinf-keyring") -eq 0 ]]; then
+		if [[ $(ls all/ | grep -c "fsinf-keyring.*deb$") -eq 0 ]]; then
 			echo "    WARNING: dists/$dist/$comp does not have the fsinf-keyring package."
 		fi
 
