@@ -103,10 +103,11 @@ def prepare(dist, dist_config_path, config=None):
 		        print(cmd)
 	        	p = Popen(shlex.split(cmd))
 		        p.communicate()
-
+		
 		if config.has_option('DEFAULT', 'append-dist'):
 		        if config.getboolean('DEFAULT', 'append-dist'):
-		        	cmd = ['sed', '-i', '1s/-\([^)]\)/-\\1~%s/' % dist, 'debian/changelog']
+				index = env.DISTROS.index(dist) + 1
+		        	cmd = ['sed', '-i', '1s/(\(.*\)-\([^-]*\))/(\\1-\\2+%s~%s)/' % (index, dist), 'debian/changelog']
 			        print(' '.join(cmd))
 			        p = Popen(cmd)
 			        p.communicate()
