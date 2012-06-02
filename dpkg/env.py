@@ -2,7 +2,12 @@ import os, sys, re
 from subprocess import Popen, PIPE
 
 # available distros, in order of release
-DISTROS = [ 'hardy', 'lenny', 'jaunty', 'karmic', 'lucid', 'maverick', 'natty', 'squeeze', 'oneiric', 'precise', 'wheezy', 'unstable' ]
+# NOTE: do not remove old distros, as this list is used
+#	to determine increasing debian revision numbers.
+DISTROS = [ 'hardy', 'lenny', 'jaunty', 
+	'karmic', 'lucid', 'maverick', 
+	'natty', 'squeeze', 'oneiric', 
+	'precise', 'wheezy', 'unstable' ]
 
 def would_build( config, dist ):
 	if not config.has_section( 'distros' ):
