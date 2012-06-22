@@ -29,6 +29,7 @@ gbp_args = []
 # basic environment:
 arch = env.get_architecture()
 dist = env.get_distribution()
+dist_id = env.get_dist_id()
 build_dir = os.path.expanduser('~/build/')
 
 # config
@@ -40,17 +41,13 @@ scriptpath = os.path.dirname(os.path.realpath(__file__ ))
 config_path = os.path.join(scriptpath, 'dist-config')
 dist_config_path = os.path.join(config_path, dist + '.cfg')
 
-# initialize the git-repository
-repo = Repo(".")
-orig_branch = repo.head.reference
-orig_dir = os.getcwd()
-
 # check if we wuild build in this distro
 if not env.would_build(config, dist):
 	print("Not building on %s." % dist)
 	sys.exit()
 
 # exit handler
+orig_dir = os.getcwd()
 def exit(orig_dir, temp_directory, keep):
 	os.chdir(orig_dir)
 	if keep:
@@ -68,8 +65,12 @@ temp_dest = os.path.join(temp_directory, os.path.basename(os.getcwd()))
 shutil.copytree( '.', temp_dest )
 os.chdir(temp_dest)
 
+# initialize the git-repository
+repo = Repo(".")
+orig_branch = repo.head.reference
+
 # checkout any dist-specific banch:
-branch = process.get_branch(repo, config, dist)
+branch = process.get_branch(repo, config, dist, dist_id)
 if branch:
 	print('Using branch %s...' % branch.name)
 	gbp_args += ['--git-debian-branch=%s' % branch.name]
