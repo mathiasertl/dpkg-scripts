@@ -47,7 +47,7 @@ def extract_source( source, config ):
 	if p.returncode != 0:
 		raise RuntimeError( "Error: Exit status was %s"%p.returncode )
 
-def get_branch(repo, config, dist):
+def get_branch(repo, config, dist, dist_id=None):
 	# see if config-file gives a branch:
 	option = '%s-branch' % dist
 	if config.has_option('DEFAULT', option):
@@ -59,7 +59,12 @@ def get_branch(repo, config, dist):
 
 	# see if dist-name branch exists:
 	if hasattr(repo.heads, dist):
+		print("WARNING: <dist> branches are deprecated. Use <debian|ubuntu>/<dist> instead")
 		return getattr(repo.heads, dist)
+	if dist_id:
+		branchname = '%s/%' % (dist_id.lower(), dist)
+		if hasattr(repo.heads, branchname):
+			return getattr(repo.heads, branchname)
 	return None
 
 def prepare(dist, dist_config_path, config=None):
