@@ -1,33 +1,57 @@
-#!/bin/bash
+#!/usr/bin/python3
 
-error_dists=""
+import os, sys, subprocess, argparse
 
-for dir in $(ls); do
-	if [[ -e $dir/.skip ]]; then
-		continue
-	fi
+from dpkg.env import DISTROS
 
-	if [[ ! -d $dir ]]; then
-		continue
-	fi
-	dist=$(echo $dir | sed 's/-.*//' )
-	arch=$(echo $dir | sed 's/.*-//' )
-	ccache="$HOME/.ccache-$dist-$arch"
-	export CCACHE_DIR="$ccache"
-	
-	echo "# $dir"
-	cmd=$(echo $@ | sed "s/DIR/$dir/g")
-	cmd=$(echo $cmd | sed "s/ARCH/$arch/g")
-	cmd=$(echo $cmd | sed "s/DIST/$dist/g")
-	echo $cmd
-	$cmd
-	if [[ "$?" -ne "0" ]]; then
-		error_dists="$error_dists $dir"
-	fi
-	echo ""
-done
+parser = argparse.ArgumentParser(
+    description='Execute command in multiple chroots via schroot.')
+parser.add_argument('--chroot-dir', metavar='DIR', default='/chroot',
+    help="Root directory that contains the chroots. (Default: %(default)s)")
+parser.add_argument('--skip-arch', '--sa', metavar='ARCH', action='append',
+    choices=['i386', 'amd64'], default=[],
+    help="Skip given architecture. May be given multiple times.")
+parser.add_argument('--skip-dist', '--sd', metavar='DIST', action='append',
+    help="Skip given distribution. May be given multiple times.")
+parser.add_argument('--from-dist', '--fd', metavar='DIST',
+    help="Only build on distributions equal or newer then DIST.")
+parser.add_argument('--until-dist', '--ud', metavar='DIST',
+    help="Only build in distributions equal or older then DIST.")
+parser.add_argument('args', nargs=argparse.REMAINDER)
+args = parser.parse_args()
 
-if [[ "$error_dists" != "" ]]; then
-	echo "Warning: The following distributions did not complete successfully:"
-	echo -e "\t$error_dists"
-fi
+cwd = os.getcwd()
+
+# change to directory
+if not os.path.exists(args.chroot_dir):
+    print("Error: %s: No such file or directory." % args.chroot_dir,
+        file=sys.stderr)
+    sys.exit(1)
+os.chdir(args.chroot_dir)
+
+chroots = sorted([d for d in os.listdir('.') if os.path.isdir(d)])
+# filter distributions:
+chroots = [d for d in chroots if d.split('-')[1] not in args.skip_arch]
+
+# filter --ud and --fd:
+if args.from_dist:
+    # get distros that would be excluded:
+    excluded = DISTROS[:DISTROS.index(args.from_dist)]
+    chroots = [d for d in chroots if d.split('-')[0] not in excluded]
+if args.until_dist:
+    excluded = DISTROS[DISTROS.index(args.until_dist)+1:]
+    chroots = [d for d in chroots if d.split('-')[0] not in excluded]
+
+# filter chroots that have .skip in root directory:
+chroots = [d for d in chroots if not os.path.exists('%s/.skip' % d)]
+failed = []
+
+for chroot in chroots:
+    cmd = ['schroot', '-p', '-c', chroot, '-d', cwd, '--', ]
+    cmd += args.args
+    print('\n\n### %s\n' % ' '.join(cmd))
+    ret = subprocess.call(cmd)
+    if ret > 0:
+        failed.append(chroot)
+if failed:
+    print("\n\nThe command failed on the following distributions:\n\t%s" % ', '.join(failed))
