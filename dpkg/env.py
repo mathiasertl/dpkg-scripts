@@ -23,6 +23,16 @@ def would_build( config, dist ):
 	if config.has_option( 'distros', 'exclude' ):
 		exclude = config.get( 'distros', 'exclude' ).split()
 		build_distros = [ d for d in build_distros if d not in exclude ]
+	
+	if config.has_option( 'DEFAULT', 'until' ):
+		until = config.get( 'DEFAULT', 'until' )
+		build_distros = build_distros[:build_distros.index( until )+1 ]
+	if config.has_option( 'DEFAULT', 'from' ):
+		until = config.get( 'DEFAULT', 'from' )
+		build_distros = build_distros[build_distros.index( until ): ]
+	if config.has_option( 'DEFAULT', 'exclude' ):
+		exclude = config.get( 'DEFAULT', 'exclude' ).split()
+		build_distros = [ d for d in build_distros if d not in exclude ]
 
 	if dist in build_distros:
 		return True
