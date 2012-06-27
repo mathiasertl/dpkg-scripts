@@ -62,7 +62,7 @@ def get_branch(repo, config, dist, dist_id=None):
 		print("WARNING: <dist> branches are deprecated. Use <debian|ubuntu>/<dist> instead")
 		return getattr(repo.heads, dist)
 	if dist_id:
-		branchname = '%s/%' % (dist_id.lower(), dist)
+		branchname = '%s/%s' % (dist_id, dist)
 		if hasattr(repo.heads, branchname):
 			return getattr(repo.heads, branchname)
 	return None
