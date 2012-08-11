@@ -10,19 +10,18 @@ DISTROS = [ 'hardy', 'lenny', 'jaunty',
 	'precise', 'wheezy', 'unstable' ]
 
 def would_build( config, dist ):
-	if not config.has_section( 'distros' ):
-		return True
 	build_distros = DISTROS
 
-	if config.has_option( 'distros', 'until' ):
-		until = config.get( 'distros', 'until' )
-		build_distros = build_distros[:build_distros.index( until )+1 ]
-	if config.has_option( 'distros', 'from' ):
-		until = config.get( 'distros', 'from' )
-		build_distros = build_distros[build_distros.index( until ): ]
-	if config.has_option( 'distros', 'exclude' ):
-		exclude = config.get( 'distros', 'exclude' ).split()
-		build_distros = [ d for d in build_distros if d not in exclude ]
+	if config.has_section( 'distros' ):
+		if config.has_option( 'distros', 'until' ):
+			until = config.get( 'distros', 'until' )
+			build_distros = build_distros[:build_distros.index( until )+1 ]
+		if config.has_option( 'distros', 'from' ):
+			until = config.get( 'distros', 'from' )
+			build_distros = build_distros[build_distros.index( until ): ]
+		if config.has_option( 'distros', 'exclude' ):
+			exclude = config.get( 'distros', 'exclude' ).split()
+			build_distros = [ d for d in build_distros if d not in exclude ]
 	
 	if config.has_option( 'DEFAULT', 'until' ):
 		until = config.get( 'DEFAULT', 'until' )
