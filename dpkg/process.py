@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE
-import env, os, sys, re
+import env, os, sys, re, glob
 
 try:   
 	import configparser
@@ -112,10 +112,15 @@ def prepare(dist, dist_config_path, config=None):
 		if config.has_option('DEFAULT', 'append-dist'):
 		        if config.getboolean('DEFAULT', 'append-dist'):
 				index = env.DISTROS.index(dist) + 1
-		        	cmd = ['sed', '-i', '1s/(\(.*\)-\([^-]*\))/(\\1-\\2+%s~%s)/' % (index, dist), 'debian/changelog']
-			        print(' '.join(cmd))
-			        p = Popen(cmd)
-			        p.communicate()
+				regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2+%s~%s)/' % (index, dist)
+
+				for path in glob.glob('debian/*changelog'):
+			        	cmd = ['sed', '-i', regex, path]
+				        print(' '.join(cmd))
+			        	p = Popen(cmd)
+				        p.communicate()
+
+				
 
 def finish( config_path ):
 	env.test_dir()
