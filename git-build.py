@@ -105,7 +105,11 @@ if not os.path.exists(export_dir):
 	os.makedirs(export_dir)
 
 # build package
-git_buildpackage = ['git-buildpackage', '--git-export-dir=%s' % export_dir ] + gbp_args
+git_buildpackage = [
+    'git-buildpackage',
+    '--git-export-dir=%s' % export_dir,
+#    '--git-postbuild=dput %s-%s $GBP_CHANGES_FILE' % (dist, arch),
+] + gbp_args
 p = Popen(git_buildpackage, stderr=PIPE)
 print(' '.join(git_buildpackage))
 stderr = p.communicate()[1].strip()
