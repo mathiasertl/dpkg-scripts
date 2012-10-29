@@ -4,10 +4,13 @@ from subprocess import Popen, PIPE
 # available distros, in order of release
 # NOTE: do not remove old distros, as this list is used
 #	to determine increasing debian revision numbers.
-DISTROS = [ 'hardy', 'lenny', 'jaunty', 
-	'karmic', 'lucid', 'maverick', 
-	'natty', 'squeeze', 'oneiric', 
-	'precise', 'wheezy', 'unstable' ]
+DISTROS = [
+    'hardy', 'lenny', 'jaunty',
+	'karmic', 'lucid', 'maverick',
+	'natty', 'squeeze', 'oneiric',
+	'precise', 'quantal',
+    'wheezy', 'unstable'
+]
 
 def would_build( config, dist ):
 	build_distros = DISTROS
@@ -22,7 +25,7 @@ def would_build( config, dist ):
 		if config.has_option( 'distros', 'exclude' ):
 			exclude = config.get( 'distros', 'exclude' ).split()
 			build_distros = [ d for d in build_distros if d not in exclude ]
-	
+
 	if config.has_option( 'DEFAULT', 'until' ):
 		until = config.get( 'DEFAULT', 'until' )
 		build_distros = build_distros[:build_distros.index( until )+1 ]
@@ -66,7 +69,7 @@ def get_package_directory( args ):
 		sys.exit(1)
 
 	return directory
-	
+
 def get_source_format( dist ):
 	old_dists = [ 'hardy', 'intrepid', 'jaunty', 'karmic', 'lenny' ]
 	if dist in old_dists:
@@ -108,7 +111,7 @@ def get_lsb_value( var ):
 		raise RuntimeError( "Variable could not be read from '/etc/lsb-release'" )
 
 	return line[0].strip().split( '=', 1 )[1]
-	
+
 def get_distribution():
 	return get_command_output( [ 'lsb_release', '-sc' ] ).lower()
 
@@ -165,7 +168,7 @@ def get_package_details():
 	packages[pkg_name] = pkg
 
 	return packages
-	
+
 
 def get_version( package=None ):
 	test_dir()
