@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE
-import env, os, sys, re, glob
+import env, os, sys, re, glob, shlex
 
 try:   
 	import configparser
