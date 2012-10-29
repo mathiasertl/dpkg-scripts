@@ -18,6 +18,14 @@ dists="$(find . -maxdepth 1 -mindepth 1 -type d -printf %P\\n | sort)"
 #read -p "GnuPG passphrase: " -s -a gpgpass
 #echo -e "\n"
 
+# remove obsolete directories:
+echo "Removing obsolete directories..."
+find -regex .*obsolete.* -delete
+
+# remove broken symlinks:
+find -L -type l -delete
+
+
 # first we create Packages and Packages.gz files (horrific loop!):
 for dist in $dists; do
 	# we might want to skip?
@@ -46,6 +54,9 @@ for dist in $dists; do
 			continue
 		fi
 
+		# remove broken symlinks:
+		find -L -type l -delete
+
 		# generate an override-file
 		generate-override
 		
@@ -60,6 +71,9 @@ for dist in $dists; do
 		fi
 
 		apt-remove-duplicates -d all
+
+		# remove broken symlinks:
+		find -L -type l -delete
 
 		for dir in $dirs; do 
 			arch=$(echo $dir | sed 's/.*binary-//')
