@@ -5,14 +5,35 @@ if [[ $(whoami) != "root" ]]; then
 	exit 1 
 fi
 
-APT_REPO="/srv/www/apt.fsinf.at/dists/"
-DPKG_REPO='/home/mati/repositories/spectrum2'
+APT_REPO=/srv/www/apt.fsinf.at/dists/
+DPKG_REPO=/home/mati/repositories/spectrum2
+BUILD_DIR=/home/mati/build/
+
+function cleanup {
+	findargs='-type f -or -type l'
+	if [[ $(find $BUILD_DIR -name 'spectrum*' $findargs | wc -l) -gt 0 ]]; then
+		find $BUILD_DIR -name 'spectrum*' $findargs | xargs rm -r
+	fi
+	if [[ $(find $BUILD_DIR -name 'libtransport*' $findargs | wc -l) -gt 0 ]]; then
+		find $BUILD_DIR -name 'libtransport*' $findargs | xargs rm -r
+	fi
+}
 
 set -x
 
 cd $DPKG_REPO
+su mati -c 'git checkout master'
+
+rm -rf debian
+
 su mati -c 'git checkout upstream'
-su mati -c 'git pull'
+su mati -c 'git pull upstream master'
+
+# BEGIN ADDED BY HANZZ
+#if [[ $(git status --porcelain | wc -l) -gt 0 ]]; then
+#	git commit debian/changelog -m "build for $(date)"
+#fi
+# END
 
 yesterday=$(date --date=yesterday)
 no_commits=$(su mati -c 'git log --oneline --since="`date --date=yesterday`"' | wc -l)
@@ -29,9 +50,12 @@ su mati -c 'git merge upstream'
 
 sed -i "1s/\((.*)\)/(1:$version-1)/" debian/changelog
 
+if [[ $(git status --porcelain | wc -l) -gt 0 ]]; then
+	git commit debian/changelog -m "build for $(date)"
+fi
+
 # remove old packages:
-find /home/mati/build | grep ^spectrum2 | xargs rm -f 2> /dev/null
-find /home/mati/build | grep ^libtransport | xargs rm -f 2> /dev/null
+cleanup
 
 # build packages
 su mati -c "mchroot --fd=lucid git-build.py"
@@ -41,5 +65,4 @@ rsync --include='libtransport*' --include='spectrum2*' --exclude='*.*' -av /home
 repo-maint
 
 # remove packages again:
-find /home/mati/build | grep ^spectrum2 | xargs rm -f 2> /dev/null
-find /home/mati/build | grep ^libtransport | xargs rm -f 2> /dev/null
+cleanup
