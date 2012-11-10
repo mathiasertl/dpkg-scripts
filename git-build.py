@@ -21,6 +21,8 @@ if not os.path.exists('debian'):
 parser = OptionParser()
 parser.add_option('--keep-temp-dir', action='store_true', default=False,
 	help="Do not delete temporary build directory after build.")
+parser.add_option('--upload', action='store_true', default=False,
+    help="Upload files to enceladus.htu.")
 options, args = parser.parse_args()
 
 # default values:
@@ -33,7 +35,7 @@ dist_id = env.get_dist_id()
 build_dir = os.path.expanduser('~/build/')
 
 # config
-config = configparser.ConfigParser()
+config = configparser.ConfigParser({'append-dist': 'true'})
 config.read([os.path.expanduser('~/debian/gbp.conf'), 'debian/gbp.conf', '.git/gbp.conf'])
 
 # get path to dist-config
@@ -78,6 +80,10 @@ if branch:
 	if repo.head.reference != branch:
 		branch.checkout()
 
+if options.upload:
+    postbuild = '--git-postbuild=dput %s-%s $GBP_CHANGES_FILE' % (dist, arch)
+    gbp_args.append(postbuild)
+
 # see if we have only arch-independent packages, if yes, only build on amd64:
 details = env.get_package_details()
 archs = set( [ v['Architecture'] for v in details.values() if 'Source' not in v ] )
@@ -108,7 +114,6 @@ if not os.path.exists(export_dir):
 git_buildpackage = [
     'git-buildpackage',
     '--git-export-dir=%s' % export_dir,
-#    '--git-postbuild=dput %s-%s $GBP_CHANGES_FILE' % (dist, arch),
 ] + gbp_args
 p = Popen(git_buildpackage, stderr=PIPE)
 print(' '.join(git_buildpackage))
