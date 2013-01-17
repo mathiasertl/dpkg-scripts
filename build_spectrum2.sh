@@ -30,7 +30,7 @@ su mati -c 'git checkout upstream'
 su mati -c 'git pull upstream master'
 
 # BEGIN ADDED BY HANZZ
-#if [[ $(git status --porcelain | wc -l) -gt 0 ]]; then
+#if [[ $(su mati -c 'git status --porcelain' | wc -l) -gt 0 ]]; then
 #	git commit debian/changelog -m "build for $(date)"
 #fi
 # END
@@ -38,7 +38,7 @@ su mati -c 'git pull upstream master'
 yesterday=$(date --date=yesterday)
 no_commits=$(su mati -c 'git log --oneline --since="`date --date=yesterday`"' | wc -l)
 
-version=$(git describe --tags --match '[0-9].*' | sed 's/\(^[0-9\.]*\)-/\1~/')
+version=$(su mati -c "git describe --tags --match '[0-9].*'" | sed 's/\(^[0-9\.]*\)-/\1~/')
 
 su mati -c 'git checkout master'
 
@@ -51,14 +51,14 @@ su mati -c 'git merge upstream'
 sed -i "1s/\((.*)\)/(1:$version-1)/" debian/changelog
 
 if [[ $(git status --porcelain | wc -l) -gt 0 ]]; then
-	git commit debian/changelog -m "build for $(date)"
+	su mati -c "git commit debian/changelog -m \"build for $(date)\""
 fi
 
 # remove old packages:
 cleanup
 
 # build packages
-su mati -c "mchroot --fd=lucid git-build.py"
+su mati -c "mchroot --fd=lucid git-build.py --upload"
 
 # update repositories
 rsync --include='libtransport*' --include='spectrum2*' --exclude='*.*' -av /home/mati/build/ $APT_REPO
