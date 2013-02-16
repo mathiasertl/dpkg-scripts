@@ -58,7 +58,7 @@ fi
 cleanup
 
 # build packages
-su mati -c "mchroot --fd=lucid git-build.py --upload"
+su mati -c "mchroot --fd=lucid git-build.py --no-pristine --upload"
 
 # update repositories
 rsync --include='libtransport*' --include='spectrum2*' --exclude='*.*' -av /home/mati/build/ $APT_REPO
