@@ -23,6 +23,11 @@ parser.add_option('--keep-temp-dir', action='store_true', default=False,
 	help="Do not delete temporary build directory after build.")
 parser.add_option('--upload', action='store_true', default=False,
     help="Upload files to enceladus.htu.")
+parser.add_option('--sa', action='store_true', default=False,
+    help="Force inclusion of original source")
+parser.add_option('--no-pristine', action='store_false', dest='pristine',
+     default=True, help="Do not use pristine tars")
+
 options, args = parser.parse_args()
 
 # default values:
@@ -83,6 +88,12 @@ if branch:
 if options.upload:
     postbuild = '--git-postbuild=dput %s-%s $GBP_CHANGES_FILE' % (dist, arch)
     gbp_args.append(postbuild)
+
+if options.sa:
+    gbp_args.append('--git-builder=debuild -i\.git -I.git -sa')
+
+if options.pristine:
+    gbp_args.append('--git-pristine-tar')
 
 # see if we have only arch-independent packages, if yes, only build on amd64:
 details = env.get_package_details()
