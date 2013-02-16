@@ -24,11 +24,14 @@ parser.add_option('--keep-temp-dir', action='store_true', default=False,
 parser.add_option('--upload', action='store_true', default=False,
     help="Upload files to enceladus.htu.")
 parser.add_option('--sa', action='store_true', default=False,
-    help="Force inclusion of original source")
+    help="Force inclusion of original source (Default: True unless --no-pristine is given).")
 parser.add_option('--no-pristine', action='store_false', dest='pristine',
      default=True, help="Do not use pristine tars")
 
 options, args = parser.parse_args()
+
+if args.pristine:
+    parser.sa = True
 
 # default values:
 gbp_args = []
