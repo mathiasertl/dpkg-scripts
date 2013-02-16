@@ -118,6 +118,9 @@ def get_distribution():
 def get_dist_id():
 	return get_command_output( [ 'lsb_release', '-si' ] ).lower()
 
+def get_dist_release():
+	return get_command_output( [ 'lsb_release', '-sr' ] ).lower()
+
 def get_source_package():
 	test_dir()
 	f = open( 'debian/control', 'r' )
