@@ -121,13 +121,6 @@ def get_dist_id():
 def get_dist_release():
 	return get_command_output( [ 'lsb_release', '-sr' ] ).lower()
 
-def get_source_package():
-	test_dir()
-	f = open( 'debian/control', 'r' )
-	line = [ l for l in f.readlines() if l.startswith( 'Source: ' ) ][0]
-	source = line.split( ': ', 1 )[1].strip()
-	return source
-
 def get_binary_packages():
 	test_dir()
 	f = open( 'debian/control', 'r' )
@@ -186,6 +179,27 @@ def get_version( package=None ):
 	version = p4.communicate()[0].strip()
 	return version
 
+
+def get_changelog_fields(changelog='debian/changelog'):
+    # cgabackup (1:2.2-1) quantal; urgency=low
+    line = open(changelog).readline().strip()
+    match = re.match(r'^(?P<package>[^ ]*)\s+\((?P<version>[^\)]*)\)\s+'
+                     '(?P<dist>[^;]*);\s+(?P<urgency>.*)', line)
+    return match.groupdict()
+
+def get_source_package(changelog='debian/changelog'):
+    return get_changelog_fields(changelog)['package']
+
+def get_version(changelog='debian/changelog'):
+    version = get_changelog_fields(changelog)['version']
+    epoch = None
+    deb_rev = None
+
+    if ':' in version:
+        epoch, version = version.split(':', 1)
+    if '-' in version:
+        version, deb_rev = version.rsplit('-', 1)
+    return {'epoch': epoch, 'version': version, 'debian_revision': deb_rev}
 def get_package_files(path, source_pkg, version, arch):
 	changes_file = '%s/%s_%s_%s.changes' % (path, source_pkg, version, arch)
 	files = [os.path.basename(changes_file)]
