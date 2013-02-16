@@ -109,8 +109,8 @@ def prepare(dist, dist_config_path, config):
         p.communicate()
 
     if config.getboolean('DEFAULT', 'append-dist'):
-        index = env.DISTROS.index(dist) + 1
-        regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2+%s~%s)/' % (index, dist)
+        release = env.get_dist_release()
+        regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2~%s)/' % release
 
         for path in glob.glob('debian/*changelog'):
             cmd = ['sed', '-i', regex, path]
