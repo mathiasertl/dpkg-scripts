@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 
-import os, re, sys, shutil, tempfile, shlex, atexit
+import os, sys, shutil, tempfile, atexit
+import ConfigParser
+
 from optparse import OptionParser
-from subprocess import *
-from dpkg import *
-
-from git import *
-
-try:
-	import configparser
-except ImportError:
-	import ConfigParser as configparser
+from subprocess import Popen, PIPE
+from dpkg import env, process
+from git import Repo
 
 # basic sanity checks:
 if not os.path.exists('debian'):
@@ -43,7 +39,7 @@ dist_id = env.get_dist_id()
 build_dir = os.path.expanduser('~/build/')
 
 # config
-config = configparser.ConfigParser({'append-dist': 'true'})
+config = ConfigParser.ConfigParser({'append-dist': 'true'})
 config.read([os.path.expanduser('~/debian/gbp.conf'), 'debian/gbp.conf', '.git/gbp.conf'])
 
 # get path to dist-config
