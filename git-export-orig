@@ -28,7 +28,11 @@ tag = 'upstream/%s' % version
 f = open(filename, 'w')
 
 archive_cmd = ['git', 'archive', '--prefix=%s' % prefix, tag]
+print('%s | gzip > %s' % (' '.join(archive_cmd), filename))
 p1 = Popen(archive_cmd, stdout=PIPE)
 p2 = Popen('gzip', stdin=p1.stdout, stdout=f)
 p1.stdout.close()
 p2.communicate()
+
+print('You may import the tarball with:')
+print("\tpristine-tar commit %s %s" % (filename, tag))
