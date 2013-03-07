@@ -5,7 +5,6 @@ if [[ $(whoami) != "root" ]]; then
 	exit 1 
 fi
 
-APT_REPO=/srv/www/apt.fsinf.at/dists/
 DPKG_REPO=/home/mati/repositories/spectrum2
 BUILD_DIR=/home/mati/build/
 
@@ -59,10 +58,6 @@ cleanup
 
 # build packages
 su mati -c "mchroot --fd=lucid git-build.py --no-pristine --upload"
-
-# update repositories
-rsync --include='libtransport*' --include='spectrum2*' --exclude='*.*' -av /home/mati/build/ $APT_REPO
-repo-maint
 
 # remove packages again:
 cleanup
