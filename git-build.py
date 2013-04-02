@@ -122,7 +122,7 @@ print(' '.join(git_commit))
 p.communicate()
 
 # create export_dir
-export_dir = os.path.join(build_dir, '%s/all/all/' % dist)
+export_dir = os.path.join(build_dir, '%s-%s' % (dist, arch))
 if not os.path.exists(export_dir):
     os.makedirs(export_dir)
 
@@ -137,35 +137,3 @@ stderr = p.communicate()[1].strip()
 if p.returncode:
     print(stderr.decode('utf_8'))
     sys.exit(1)
-
-# create directory stubs:
-source_dir = os.path.join(build_dir, '%s/all/source/' % dist)
-if not os.path.exists(source_dir):
-    os.makedirs(source_dir)
-binary_dir = os.path.join(build_dir, '%s/all/binary-%s/' % (dist, arch))
-if not os.path.exists(binary_dir):
-    os.makedirs(binary_dir)
-
-# link components:
-if config.has_option('DEFAULT', 'components'):
-    files = env.get_package_files(export_dir, source_pkg, version, arch)
-    components = config.get('DEFAULT', 'components').split()
-
-    for component in components:
-        # precreate directories
-        component_dir = os.path.join(build_dir, '%s/%s/all' % (dist, component))
-        if not os.path.exists(component_dir):
-            os.makedirs(component_dir)
-        source_dir = os.path.join(build_dir, '%s/%s/source' % (dist, component))
-        if not os.path.exists(source_dir):
-            os.makedirs(source_dir)
-        binary_dir = os.path.join(build_dir, '%s/%s/binary-%s' % (dist, component, arch))
-        if not os.path.exists(binary_dir):
-            os.makedirs(binary_dir)
-
-        for f in files:
-            source = os.path.join('../../all/all/', f)
-            dest = os.path.join(component_dir, f)
-            if not os.path.exists(dest):
-                print('ln -s %s %s' % (source, dest))
-                os.symlink(source, dest)
