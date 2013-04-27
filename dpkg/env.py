@@ -8,7 +8,7 @@ DISTROS = [
     'hardy', 'lenny', 'jaunty',
 	'karmic', 'lucid', 'maverick',
 	'natty', 'squeeze', 'oneiric',
-	'precise', 'quantal',
+	'precise', 'quantal', 'raring',
     'wheezy', 'unstable'
 ]
 
