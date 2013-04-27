@@ -7,6 +7,7 @@ import sys
 from subprocess import Popen, PIPE
 
 from dpkg import env
+from dpkg import gbp
 
 parser = argparse.ArgumentParser(
     description='Generate orig.tar.gz from upstream source tree')
@@ -17,22 +18,49 @@ if not os.path.exists('debian/control'):
     print('debian/control: No such file or directory.', file=sys.stderr)
     sys.exit(1)
 
-#git archive --prefix=cgabackup-2.2/ upstream/2.2 | gzip > ../test
 pkg = env.get_source_package()
 version = env.get_version()['version']
+upstream_branch = gbp.upstream_branch()
 
 filename = '../%s_%s.orig.tar.gz' % (pkg, version)
 prefix = '%s-%s/' % (pkg, version)
 tag = 'upstream/%s' % version
 
+# check if tag already exists:
+p_taglist = Popen(['git', 'tag'], stdout=PIPE)
+tags = p_taglist.communicate()[0].decode('utf-8').strip().split()
+
+# tag the upstream branch:
+if tag not in tags:
+    print('git tag %s %s' % (tag, upstream_branch))
+    tag_cmd = ['git', 'tag', tag, upstream_branch]
+    p_tag = Popen(tag_cmd, stderr=PIPE)
+    stdout, stderr = p_tag.communicate()
+    if p_tag.returncode != 0:
+        print(stderr.decode('utf-8').strip(), file=sys.stderr)
+        sys.exit(1)
+else:
+    print("Tag '%s' already exists." % tag)
+
 f = open(filename, 'w')
 
 archive_cmd = ['git', 'archive', '--prefix=%s' % prefix, tag]
 print('%s | gzip > %s' % (' '.join(archive_cmd), filename))
-p1 = Popen(archive_cmd, stdout=PIPE)
+p1 = Popen(archive_cmd, stdout=PIPE, stderr=PIPE)
 p2 = Popen('gzip', stdin=p1.stdout, stdout=f)
+p1.wait()
 p1.stdout.close()
-p2.communicate()
+p2_stderr = p2.communicate()[1]
 
-print('You may import the tarball with:')
-print("\tpristine-tar commit %s %s" % (filename, tag))
+if p1.returncode != 0:
+    print(p1.stderr.read().decode('utf-8').strip(), file=sys.stderr)
+    sys.exit(1)
+if p2.returncode != 0:
+    print(p2_stderr.decode('utf-8').strip(), file=sys.stderr)
+    sys.exit(1)
+
+print("pristine-tar commit %s %s" % (filename, tag))
+p_pristine = Popen(['pristine-tar', 'commit', filename, tag], stderr=PIPE)
+pristine_stderr = p_pristine.communicate()[1]
+if p_pristine.returncode != 0:
+    print(pristine_stderr.decode('utf-8').strip(), file=sys.stderr)
