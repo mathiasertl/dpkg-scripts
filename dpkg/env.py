@@ -200,6 +200,7 @@ def get_version(changelog='debian/changelog'):
     if '-' in version:
         version, deb_rev = version.rsplit('-', 1)
     return {'epoch': epoch, 'version': version, 'debian_revision': deb_rev}
+
 def get_package_files(path, source_pkg, version, arch):
 	changes_file = '%s/%s_%s_%s.changes' % (path, source_pkg, version, arch)
 	files = [os.path.basename(changes_file)]
