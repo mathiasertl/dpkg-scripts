@@ -92,6 +92,8 @@ def prepare(dist, dist_config_path, config):
     p.communicate()
 
     # set distribution in topmost entry in changes-file:
+    if distrib_config.has_option('defaults', 'name'):
+        dist = distrib_config.get('defaults', 'name')
     p = Popen( [ 'sed', '-i', '1s/) [^;]*;/) ' + dist + ';/', 'debian/changelog' ] )
     p.communicate()
 
