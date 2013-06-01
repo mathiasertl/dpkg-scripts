@@ -9,7 +9,7 @@ DISTROS = [
 	'karmic', 'lucid', 'maverick',
 	'natty', 'squeeze', 'oneiric',
 	'precise', 'quantal', 'raring',
-    'wheezy', 'testing', 'unstable'
+    'wheezy', 'jessie', 'unstable'
 ]
 
 def would_build( config, dist ):
