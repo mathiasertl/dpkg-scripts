@@ -11,6 +11,10 @@ from dpkg import gbp
 
 parser = argparse.ArgumentParser(
     description='Generate orig.tar.gz from upstream source tree')
+parser.add_argument(
+    '-v', metavar='VERSION', dest='version',
+    help="Use this version (default: get from debian/control)"
+)
 args = parser.parse_args()
 
 # basically: dh_testdir
@@ -19,7 +23,10 @@ if not os.path.exists('debian/control'):
     sys.exit(1)
 
 pkg = env.get_source_package()
-version = env.get_version()['version']
+if args.version is None:
+    version = env.get_version()['version']
+else:
+    version = args.version
 upstream_branch = gbp.upstream_branch()
 
 filename = '../%s_%s.orig.tar.gz' % (pkg, version)
