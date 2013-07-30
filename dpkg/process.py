@@ -116,7 +116,8 @@ def prepare(dist, dist_config_path, config):
     # replace __DATE__
     pdate = Popen(['date', '-R'], stdout=PIPE)
     timestamp = pdate.communicate()[0].decode('utf_8').strip()
-    p1 = Popen(['find', 'debian/', '-maxdepth', '1', '-type', 'f'], stdout=PIPE)
+    p1 = Popen(['find', 'debian/', '-maxdepth', '1', '-type', 'f'],
+               stdout=PIPE)
     p2 = Popen(['xargs', 'sed', '-i', 's/__DATE__/' + timestamp + '/'],
                stdin=p1.stdout)
     p2.communicate()
@@ -150,5 +151,6 @@ def finish(config_path):
     p = Popen(['sed', '-i', '1s/) [^;]*;/) unstable;/', 'debian/changelog'])
 
     # standards version to most recent
-    p = Popen(['sed', '-i', 's/^Standards-Version:.*/Standards-Version: 3.9.2/', 'debian/control'])
+    p = Popen(['sed', '-i', 's/^Standards-Version:.*/Standards-Version: 3.9.4/',
+               'debian/control'])
     p.communicate()
