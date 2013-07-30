@@ -137,20 +137,3 @@ def prepare(dist, dist_config_path, config):
             print(' '.join(cmd))
             p = Popen(cmd)
             p.communicate()
-
-
-def finish(config_path):
-    env.test_dir()
-
-    # reset package to a nice default state
-    f = open('debian/compat', 'w')
-    f.write('8\n')
-    f.close()
-
-    # set distribution in topmost entry in changes-file:
-    p = Popen(['sed', '-i', '1s/) [^;]*;/) unstable;/', 'debian/changelog'])
-
-    # standards version to most recent
-    p = Popen(['sed', '-i', 's/^Standards-Version:.*/Standards-Version: 3.9.4/',
-               'debian/control'])
-    p.communicate()
