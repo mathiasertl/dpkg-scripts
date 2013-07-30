@@ -129,7 +129,10 @@ def prepare(dist, dist_config_path, config):
         p.communicate()
 
     if config.getboolean('DEFAULT', 'append-dist'):
-        release = env.get_dist_release()
+        if distrib_config.has_option('defaults', 'release'):
+            release = distrib_config.get('defaults', 'release')
+        else:
+            release = env.get_dist_release()
         regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2~%s)/' % release
 
         for path in glob.glob('debian/*changelog'):
