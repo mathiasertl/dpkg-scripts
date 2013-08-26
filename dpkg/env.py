@@ -19,8 +19,9 @@ DISTROS = [
     'oneiric',
     'precise',
     'quantal',
-    'raring',
     'wheezy',
+    'raring',
+    'saucy',
     'jessie',
     'unstable',
 ]

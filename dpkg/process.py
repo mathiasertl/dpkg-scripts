@@ -132,11 +132,24 @@ def prepare(dist, dist_config_path, config):
         if distrib_config.has_option('defaults', 'release'):
             release = distrib_config.get('defaults', 'release')
         else:
-            release = env.get_dist_release()
-        regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2~%s)/' % release
+            dist_id = env.get_dist_id().lower()
+            if dist_id == 'ubuntu':
+                release = env.get_distribution()
+            elif dist_id == 'debian':
+                dist_release = env.get_dist_release()
+                # unstable/testing get no suffix
+                if dist_release in ['unstable', 'testing']:
+                    release = ''
+                else:
+                    release = 'afa%s' % env.get_dist_release().replace('.', '')
+            else:
+                raise RuntimeError(dist_id)
 
-        for path in glob.glob('debian/*changelog'):
-            cmd = ['sed', '-i', regex, path]
-            print(' '.join(cmd))
-            p = Popen(cmd)
-            p.communicate()
+        if release:
+            regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2~%s)/' % release
+
+            for path in glob.glob('debian/*changelog'):
+                cmd = ['sed', '-i', regex, path]
+                print(' '.join(cmd))
+                p = Popen(cmd)
+                p.communicate()
