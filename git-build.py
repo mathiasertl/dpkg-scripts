@@ -7,30 +7,30 @@ import shutil
 import tempfile
 import sys
 
-from optparse import OptionParser
+from argparse import ArgumentParser
 from subprocess import Popen, PIPE
 from dpkg import env, process
 from git import Repo
 
 # parse command-line:
-parser = OptionParser()
-parser.add_option('--keep-temp-dir', action='store_true', default=False,
+parser = ArgumentParser()
+parser.add_argument('--keep-temp-dir', action='store_true', default=False,
     help="Do not delete temporary build directory after build.")
-parser.add_option('--upload', action='store_true', default=False,
+parser.add_argument('--upload', action='store_true', default=False,
     help="Upload files to enceladus.htu.")
-parser.add_option('--sa', action='store_true', default=False,
+parser.add_argument('--sa', action='store_true', default=False,
     help="Force inclusion of original source (Default: True unless --no-pristine is given).")
-parser.add_option('--no-pristine', action='store_false', dest='pristine',
+parser.add_argument('--no-pristine', action='store_false', dest='pristine',
     default=True, help="Do not use pristine tars")
-options, args = parser.parse_args()
+args = parser.parse_args()
 
 # basic sanity checks:
 if not os.path.exists('debian'):
     print('Error: debian: Directory not found.')
     sys.exit(1)
 
-if options.pristine:
-    options.sa = True
+if args.pristine:
+    args.sa = True
 
 # default values:
 gbp_args = []
@@ -69,7 +69,7 @@ def exit(orig_dir, temp_directory, keep):
 
 # create temporary directory:
 temp_directory = tempfile.mkdtemp()
-atexit.register(exit, orig_dir, temp_directory, options.keep_temp_dir)
+atexit.register(exit, orig_dir, temp_directory, args.keep_temp_dir)
 
 # move to temporary directory:
 temp_dest = os.path.join(temp_directory, os.path.basename(os.getcwd()))
@@ -89,14 +89,14 @@ if branch:
     if repo.head.reference != branch:
         branch.checkout()
 
-if options.upload:
+if args.upload:
     postbuild = '--git-postbuild=dput %s-%s $GBP_CHANGES_FILE' % (dist, arch)
     gbp_args.append(postbuild)
 
-if options.sa:
+if args.sa:
     gbp_args.append('--git-builder=debuild -i\.git -I.git -sa')
 
-if options.pristine:
+if args.pristine:
     gbp_args.append('--git-pristine-tar')
 
 # see if we have only arch-independent packages, if yes, only build on amd64:
