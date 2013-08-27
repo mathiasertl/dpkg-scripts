@@ -43,7 +43,11 @@ build_dir = os.path.expanduser('~/build/')
 
 # config
 config = ConfigParser.ConfigParser({'append-dist': 'true'})
-config.read([os.path.expanduser('~/debian/gbp.conf'), 'debian/gbp.conf', '.git/gbp.conf'])
+config.read([
+    os.path.expanduser('~/debian/gbp.conf'),
+    'debian/gbp.conf',
+    '.git/gbp.conf',
+])
 
 # get path to dist-config
 scriptpath = os.path.dirname(os.path.realpath(__file__))
