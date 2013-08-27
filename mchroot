@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 
-import os, sys, subprocess, argparse
+import argparse
+import os
+import subprocess
+import sys
 
 from dpkg.env import DISTROS
 
