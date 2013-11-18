@@ -23,6 +23,7 @@ DISTROS = [
     'raring',
     'saucy',
     'jessie',
+    'trusty',
     'unstable',
 ]
 
