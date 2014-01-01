@@ -1,0 +1,37 @@
+== Start package without upstream git repo ==
+# TODO, we want upstream to be the first branch, etc
+
+
+== Start package with upstream git repo ==
+
+# clone newly created repo from git.fsinf.at
+git clone git@git.fsinf.at/apt/package.git
+
+# add 'upstream' remote:
+git remote add upstream <upstream-url>
+git fetch upstream
+git branch upstream upstream/master
+
+# now we have upstream branch and no master branch, "git branch"
+# will show that there is only an "upstream" branch, where you are NOT
+# in.
+
+# We now create a local debian/ dir
+mkdir debian
+touch debian/rules
+# ...
+git add debian
+git commit debian -m "add first version of debian dir"
+# as soon as we commit, we have a "master" branch that we are on
+# automatically
+
+# we can now merge the upstream branch into the master branch:
+git merge upstream
+
+# finally, we can pull everything into the package dir on git.fsinf.at:
+git push origin master
+git push origin upstream
+
+TODO: fetch upstream sources?
+
+see: http://stackoverflow.com/questions/244695/how-to-combine-two-branches-from-two-different-repositories-in-a-single-reposito
