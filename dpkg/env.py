@@ -26,22 +26,14 @@ DISTROS = [
     'trusty',
     'unstable',
 ]
+ARCHITECTURES = ['amd64', 'i386', ]
 
 
 def would_build(config, dist):
-    build_distros = DISTROS
-
     if config.has_section('distros'):
-        if config.has_option('distros', 'until'):
-            until = config.get('distros', 'until')
-            build_distros = build_distros[:build_distros.index(until) + 1]
-        if config.has_option('distros', 'from'):
-            until = config.get('distros', 'from')
-            build_distros = build_distros[build_distros.index(until):]
-        if config.has_option('distros', 'exclude'):
-            exclude = config.get('distros', 'exclude').split()
-            build_distros = [d for d in build_distros if d not in exclude]
+        raise Exception("gbp-config: Found old 'distros' section, use 'DEFAULT' instead")
 
+    build_distros = DISTROS
     if config.has_option('DEFAULT', 'until'):
         until = config.get('DEFAULT', 'until')
         build_distros = build_distros[:build_distros.index(until) + 1]
@@ -56,6 +48,15 @@ def would_build(config, dist):
         return True
     else:
         return False
+
+
+def get_release(dist, dist_config):
+    if dist_config.has_section('defaults'):
+        raise Exception('dist-config: Using old section name "defaults", use DEFAULTS instead!')
+
+    if dist_config.has_option('DEFAULT', 'release'):
+        return dist_config.get('DEFAULT', 'release')
+    return dist
 
 
 def get_package_directory(args):
@@ -136,14 +137,6 @@ def get_lsb_value(var):
 
 def get_distribution():
     return get_command_output(['lsb_release', '-sc']).lower()
-
-
-def get_dist_id():
-    return get_command_output(['lsb_release', '-si']).lower()
-
-
-def get_dist_release():
-    return get_command_output(['lsb_release', '-sr']).lower()
 
 
 def get_binary_packages():

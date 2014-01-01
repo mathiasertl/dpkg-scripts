@@ -78,6 +78,11 @@ def get_branch(repo, config, dist, dist_id=None):
         branchname = '%s/%s' % (dist_id, dist)
         if hasattr(repo.heads, branchname):
             return getattr(repo.heads, branchname)
+    if hasattr(repo.heads, 'debian/%s' % dist):
+        return getattr(repo.heads, 'debian/%s' % dist)
+    if hasattr(repo.heads, 'ubuntu/%s' % dist):
+        return getattr(repo.heads, 'ubuntu/%s' % dist)
+
     return None
 
 
@@ -92,23 +97,27 @@ def prepare(dist, dist_config_path, config):
     distrib_config = configparser.ConfigParser()
     distrib_config.read(dist_config_path)
 
+    # error on old sections
+    if distrib_config.has_section('defaults'):
+        raise Exception("dist-config: Found old 'defaults' section, use 'DEFAULT' instead.")
+
     # set compat level to distro-specific value
-    compat = distrib_config.get('defaults', 'compat')
+    compat = distrib_config.get('DEFAULT', 'compat')
     print("Set debian/compat to " + compat + "...")
     f = open('debian/compat', 'w')
     f.write(compat + '\n')
     f.close()
 
     # set Standards-Version in debian/control:
-    standards = distrib_config.get('defaults', 'standards')
+    standards = distrib_config.get('DEFAULT', 'standards')
     print("Set Standards-Version to " + standards + '...')
     sed_ex = 's/^Standards-Version:.*/Standards-Version: %s/' % standards
     p = Popen(['sed', '-i', sed_ex, 'debian/control'])
     p.communicate()
 
     # set distribution in topmost entry in changes-file:
-    if distrib_config.has_option('defaults', 'name'):
-        dist = distrib_config.get('defaults', 'name')
+    if distrib_config.has_option('DEFAULT', 'name'):
+        dist = distrib_config.get('DEFAULT', 'name')
     sed_ex = '1s/) [^;]*;/) %s;/' % dist
     p = Popen(['sed', '-i', sed_ex, 'debian/changelog'])
     p.communicate()
@@ -129,21 +138,7 @@ def prepare(dist, dist_config_path, config):
         p.communicate()
 
     if config.getboolean('DEFAULT', 'append-dist'):
-        if distrib_config.has_option('defaults', 'release'):
-            release = distrib_config.get('defaults', 'release')
-        else:
-            dist_id = env.get_dist_id().lower()
-            if dist_id == 'ubuntu':
-                release = env.get_distribution()
-            elif dist_id == 'debian':
-                dist_release = env.get_dist_release()
-                # unstable/testing get no suffix
-                if dist_release in ['unstable', 'testing']:
-                    release = ''
-                else:
-                    release = 'afa%s' % env.get_dist_release().replace('.', '')
-            else:
-                raise RuntimeError(dist_id)
+        release = env.get_release(dist, distrib_config)
 
         if release:
             regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2~%s)/' % release

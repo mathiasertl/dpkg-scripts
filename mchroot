@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
 import argparse
+import configparser
 import os
 import subprocess
 import sys
 
 from dpkg.env import DISTROS
+from dpkg.env import ARCHITECTURES
 
 parser = argparse.ArgumentParser(
     description='Execute command in multiple chroots via schroot.')
@@ -17,7 +19,7 @@ group.add_argument('--skip-arch', '--sa', metavar='ARCH', action='append',
     choices=['i386', 'amd64'], default=[],
     help="Skip given architecture. May be given multiple times.")
 group.add_argument('--skip-dist', '--sd', metavar='DIST', action='append',
-    help="Skip given distribution. May be given multiple times.")
+    default=[], help="Skip given distribution. May be given multiple times.")
 group.add_argument('--from-dist', '--fd', metavar='DIST',
     help="Only build on distributions equal or newer then DIST.")
 group.add_argument('--until-dist', '--ud', metavar='DIST',
@@ -28,41 +30,62 @@ group.add_argument(
 parser.add_argument('args', nargs=argparse.REMAINDER)
 args = parser.parse_args()
 
+failed = []
 cwd = os.getcwd()
+configpath = '/etc/dist-config'
+userpath = os.path.expanduser('~/.dist-config')
 
 # change to directory
 if not os.path.exists(args.chroot_dir):
     print("Error: %s: No such file or directory." % args.chroot_dir,
         file=sys.stderr)
     sys.exit(1)
-os.chdir(args.chroot_dir)
 
-chroots = sorted([d for d in os.listdir('.') if os.path.isdir(d)])
-# filter distributions:
-chroots = [d for d in chroots if d.split('-')[1] not in args.skip_arch]
+# filter dists that have .skip in root directory:
+dists = set()
+if os.path.exists(configpath):
+    dists |= set([os.path.splitext(p)[0] for p in os.listdir(configpath)])
+if os.path.exists(userpath):
+    dists |= set([os.path.splitext(p)[0] for p in os.listdir(userpath)])
 
-# filter --ud and --fd:
-if args.dist:
-    chroots = [c for c in chroots if c.split('-')[0] == args.dist]
+# skip distributions named at the command-line:
+dists = sorted([d for d in dists if d not in args.skip_dist])
+
+# honour --from-dist/--until-dist from command-line
+if args.dist:  # explicit dist from CLI
+    dists = [d for d in dists if d == args.dist]
 else:
     if args.from_dist:
-        # get distros that would be excluded:
-        excluded = DISTROS[:DISTROS.index(args.from_dist)]
-        chroots = [d for d in chroots if d.split('-')[0] not in excluded]
+        index = DISTROS.index(args.from_dist)
+        dists = [d for d in dists if d in DISTROS and DISTROS.index(d) >= index]
     if args.until_dist:
-        excluded = DISTROS[DISTROS.index(args.until_dist)+1:]
-        chroots = [d for d in chroots if d.split('-')[0] not in excluded]
+        index = DISTROS.index(args.until_dist)
+        dists = [d for d in dists if d in DISTROS and DISTROS.index(d) <= index]
 
-# filter chroots that have .skip in root directory:
-chroots = [d for d in chroots if not os.path.exists('%s/.skip' % d)]
-failed = []
+# honour skip = true in .cfg file
+for dist in dists:
+    config = configparser.ConfigParser({'skip': 'false'})
+    config.read([os.path.join(userpath, '%s.cfg' % dist),
+                os.path.join(configpath, '%s.cfg' % dist)])
+    if config.getboolean('DEFAULT', 'skip'):
+        dists.remove(dist)
 
-for chroot in chroots:
-    cmd = ['schroot', '-p', '-c', chroot, '-d', cwd, '--', ]
-    cmd += args.args
-    print('\n\n### %s\n' % ' '.join(cmd))
-    ret = subprocess.call(cmd)
-    if ret > 0:
-        failed.append(chroot)
+# honour archs:
+archs = [a for a in ARCHITECTURES if a not in args.skip_arch]
+
+# finally, loop over dists:
+for dist in dists:
+    for arch in archs:
+        if os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (dist, arch)):
+            cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch] + args.args
+            print('\n\n### %s-%s: %s\n' % (dist, arch, ' '.join(cmd)))
+        else:
+            cmd = ['schroot', '-p', '-c', dist, '-d', cwd, '--', ]
+            cmd += args.args
+            print('\n\n### %s\n' % ' '.join(cmd))
+            ret = subprocess.call(cmd)
+            if ret > 0:
+                failed.append(chroot)
+
 if failed:
     print("\n\nThe command failed on the following distributions:\n\t%s" % ', '.join(failed))
