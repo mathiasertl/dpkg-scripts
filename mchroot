@@ -63,7 +63,7 @@ else:
         dists = [d for d in dists if d in DISTROS and DISTROS.index(d) <= index]
 
 # honour skip = true in .cfg file
-for dist in dists:
+for dist in list(dists):
     config = configparser.ConfigParser({'skip': 'false'})
     config.read([os.path.join(userpath, '%s.cfg' % dist),
                 os.path.join(configpath, '%s.cfg' % dist)])
@@ -78,14 +78,14 @@ for dist in dists:
     for arch in archs:
         if os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (dist, arch)):
             cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch] + args.args
-            print('\n\n### %s-%s: %s\n' % (dist, arch, ' '.join(cmd)))
         else:
-            cmd = ['schroot', '-p', '-c', dist, '-d', cwd, '--', ]
+            cmd = ['schroot', '-p', '-c', '%s-%s' % (dist, arch), '-d', cwd, '--', ]
             cmd += args.args
-            print('\n\n### %s\n' % ' '.join(cmd))
-            ret = subprocess.call(cmd)
-            if ret > 0:
-                failed.append(chroot)
+
+        print('\n\n### %s\n' % ' '.join(cmd))
+        ret = subprocess.call(cmd)
+        if ret > 0:
+            failed.append('%s-%s' % (dist, arch))
 
 if failed:
     print("\n\nThe command failed on the following distributions:\n\t%s" % ', '.join(failed))
