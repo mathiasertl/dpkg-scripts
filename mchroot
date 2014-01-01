@@ -27,7 +27,14 @@ group.add_argument('--until-dist', '--ud', metavar='DIST',
 group.add_argument(
     '--dist', '-d', metavar='DIST',
     help='Only build on the specified distribution. (Overrides --sa, --fd and --ud)')
-parser.add_argument('args', nargs=argparse.REMAINDER)
+
+subparsers = parser.add_subparsers(dest='cmd')
+build = subparsers.add_parser('build', aliases=['b'])
+login = subparsers.add_parser('login', aliases=['l'])
+login.add_argument('--save', default=False, action='store_true')
+update = subparsers.add_parser('update', aliases=['u'])
+execute = subparsers.add_parser('execute', aliases=['exec', 'e'])
+#parser.add_argument('args', nargs=argparse.REMAINDER)
 args = parser.parse_args()
 
 failed = []
@@ -77,12 +84,26 @@ archs = [a for a in ARCHITECTURES if a not in args.skip_arch]
 for dist in dists:
     for arch in archs:
         if os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (dist, arch)):
-            cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch] + args.args
-        else:
-            cmd = ['schroot', '-p', '-c', '%s-%s' % (dist, arch), '-d', cwd, '--', ]
-            cmd += args.args
+            os.environ['DIST'] = dist
+            os.environ['ARCH'] = arch
 
-        print('\n\n### %s\n' % ' '.join(cmd))
+            if args.cmd == 'update':
+                cmd = ['git-pbuilder', 'update', ]
+            elif args.cmd == 'login':
+                cmd = ['git-pbuilder', 'login', ]
+                if args.save:
+                    cmd.append('--save-after-login')
+            elif args.cmd == 'build':
+                cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch]
+            else:
+                print("Error: Unknown command: %s" % args.cmd)
+                continue
+        else:
+            print('Error: %s-%s: cow not found' % (dist, arch))
+            failed.append('%s-%s' % (dist, arch))
+            continue
+
+        print('\n\n### DIST=%s ARCH=%s %s\n' % (dist, arch, ' '.join(cmd)))
         ret = subprocess.call(cmd)
         if ret > 0:
             failed.append('%s-%s' % (dist, arch))
