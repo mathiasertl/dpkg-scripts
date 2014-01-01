@@ -59,55 +59,6 @@ def get_release(dist, dist_config):
     return dist
 
 
-def get_package_directory(args):
-    """
-    Get the directory containing the source package
-    """
-    def get_directory(arg):
-        if os.path.exists(arg):
-            return arg
-
-        dirs = [n for n in os.listdir('.') if os.path.isdir(n)]
-        candidates = [d for d in dirs if re.match('%s-[0-9]+' % arg, d)]
-        return sorted(candidates)[-1]
-
-    if len(args) == 0:
-        if os.path.exists('debian'):
-            return '.'  # we already are in the package directory
-
-        dirs = [node for node in os.listdir('.') if os.path.isdir(node)]
-        if len(dirs) == 1:
-            directory = dirs[0]
-        else:
-            directory = get_directory(os.path.basename(os.getcwd()))
-    elif len(args) == 1:
-        directory = get_directory(args[0])
-    else:
-        print("Please name at most one directory to build.")
-        sys.exit(1)
-
-    return directory
-
-
-def get_source_format(dist):
-    old_dists = ['hardy', 'intrepid', 'jaunty', 'karmic', 'lenny']
-    if dist in old_dists:
-        if os.path.exists('debian/source/format'):
-            return open('debian/source/format').readline().strip()
-        else:
-            return '1.0'
-    else:
-        # determine source package format:
-        workdir = os.getcwd()
-        dirname = os.path.dirname(workdir)
-        basename = os.path.basename(workdir)
-        os.chdir(dirname)
-        p = Popen(['dpkg-source', '--print-format', basename], stdout=PIPE)
-        source_format = p.communicate()[0].strip()
-        os.chdir(workdir)
-        return source_format
-
-
 def get_command_output(cmd):
     p = Popen(cmd, stdout=PIPE)
     stdout = p.communicate()[0].strip()
@@ -222,25 +173,3 @@ def get_version(changelog='debian/changelog'):
     if '-' in version:
         version, deb_rev = version.rsplit('-', 1)
     return {'epoch': epoch, 'version': version, 'debian_revision': deb_rev}
-
-
-def get_package_files(path, source_pkg, version, arch):
-    changes_file = '%s/%s_%s_%s.changes' % (path, source_pkg, version, arch)
-    files = [os.path.basename(changes_file)]
-    section = False
-    for line in open(changes_file).readlines():
-        if line.strip() == "Files:":
-            section = True
-            continue
-        if not section:
-            continue
-        if section and not line.startswith(' '):
-            break
-
-        files.append(line.strip().split()[4])
-
-    build_file = '%s/%s_%s_%s.build' % (path, source_pkg, version, arch)
-    if os.path.exists(build_file):
-        files.append(os.path.basename(build_file))
-
-    return files
