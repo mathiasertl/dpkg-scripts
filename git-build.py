@@ -53,8 +53,10 @@ config.read([
 
 # get path to dist-config
 scriptpath = os.path.dirname(os.path.realpath(__file__))
-config_path = os.path.join(scriptpath, 'dist-config')
-dist_config_path = os.path.join(config_path, args.dist + '.cfg')
+dist_config_path = [
+    os.path.join(os.path.expanduser('~/.dist-config'), '%s.cfg' % args.dist),
+    os.path.join('/etc/dist-config', '%s.cfg' % args.dist),
+]
 
 # check if we wuild build in this distro
 if not env.would_build(config, args.dist):
@@ -63,7 +65,6 @@ if not env.would_build(config, args.dist):
 
 # exit handler
 orig_dir = os.getcwd()
-
 
 def exit(orig_dir, temp_directory, keep):
     os.chdir(orig_dir)
@@ -118,18 +119,15 @@ if set(['all']) == archs and args.arch != 'amd64':
     sys.exit()
 
 # prepare package
-print('prepare(%s, %s, %s)' % (args.dist, dist_config_path, config))
 process.prepare(args.dist, dist_config_path, config)
 
 # get package details:
-version = env.get_version()
 source_pkg, binary_pkgs = env.get_packages()
 
 # commit any changes:
-commited_changes = False
 git_commit = ['git', 'commit', '-a', '-m', 'prepare package for %s' % args.dist]
-p = Popen(git_commit, stderr=PIPE)
 print(' '.join(git_commit))
+p = Popen(git_commit, stderr=PIPE)
 p.communicate()
 
 # create export_dir
@@ -142,8 +140,8 @@ git_buildpackage = [
     'git-buildpackage',
     '--git-export-dir=%s' % export_dir,
 ] + gbp_args
-p = Popen(git_buildpackage, stderr=PIPE)
 print(' '.join(git_buildpackage))
+p = Popen(git_buildpackage, stderr=PIPE)
 stderr = p.communicate()[1].strip()
 if p.returncode:
     print(stderr.decode('utf_8'))
