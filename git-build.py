@@ -18,31 +18,36 @@ parser.add_argument('--keep-temp-dir', action='store_true', default=False,
     help="Do not delete temporary build directory after build.")
 parser.add_argument('--upload', action='store_true', default=False,
     help="Upload files to enceladus.htu.")
-parser.add_argument('--sa', action='store_true', default=False,
-    help="Force inclusion of original source (Default: True unless --no-pristine is given).")
 parser.add_argument('--no-pristine', action='store_false', dest='pristine',
     default=True, help="Do not use pristine tars")
-parser.add_argument('--dist', help="Distribution we build for.")
-parser.add_argument('--arch', help="Architecture we build for.")
+parser.add_argument('-d', '--dist', help="Distribution we build for.")
+parser.add_argument('-a', '--arch', help="Architecture we build for.")
 args = parser.parse_args()
 
 # basic sanity checks:
 if not os.path.exists('debian'):
     print('Error: debian: Directory not found.')
     sys.exit(1)
-
-if args.pristine:
-    args.sa = True
+if args.dist is None:
+    parser.error('Distribution must be given via --dist')
+if args.arch is None:
+    parser.error('Architecture must be given via --arch')
 
 # default values:
-gbp_args = []
+gbp_args = [
+    '--git-pbuilder', '--git-dist=%s' % args.dist, '--git-arch=%s' % args.arch,
+]
 
 # basic environment:
-if args.arch is None:
-    args.arch = env.get_architecture()
-if args.dist is None:
-    args.dist = env.get_distribution()
 build_dir = os.path.expanduser('~/build/')
+# pbuilder environment variables:
+os.environ['DIST'] = args.dist
+os.environ['ARCH'] = args.arch
+
+cow_path = '/var/cache/pbuilder/base-%s-%s.cow' % (args.dist, args.arch)
+if not os.path.exists(cow_path):
+    print('Error: %s: Directory not found.')
+    sys.exit(1)
 
 # config
 config = ConfigParser.ConfigParser({'append-dist': 'true'})
@@ -58,7 +63,7 @@ dist_config_path = [
     os.path.join('/etc/dist-config', '%s.cfg' % args.dist),
 ]
 
-# check if we wuild build in this distro
+# check if we would build in this distro
 if not env.would_build(config, args.dist):
     print("Not building on %s." % args.dist)
     sys.exit()
@@ -99,14 +104,6 @@ if branch:
 if args.upload:
     postbuild = '--git-postbuild=dput %s-%s $GBP_CHANGES_FILE' % (args.dist, args.arch)
     gbp_args.append(postbuild)
-
-if os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (args.dist, args.arch)):
-    # use git-pbuilder if available
-    gbp_args += ['--git-pbuilder', '--git-dist=%s' % args.dist, '--git-arch=%s' % args.arch]
-    os.environ['DIST'] = args.dist
-    os.environ['ARCH'] = args.arch
-elif args.sa:
-    gbp_args.append('--git-builder=debuild -i\.git -I.git -sa')
 
 if args.pristine:
     gbp_args.append('--git-pristine-tar')
