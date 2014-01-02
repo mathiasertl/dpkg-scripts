@@ -9,17 +9,11 @@ import sys
 
 from argparse import ArgumentParser
 from subprocess import Popen, PIPE
-from dpkg import env, process
+from dpkg import env, process, argparse_helpers
 from git import Repo
 
 # parse command-line:
-parser = ArgumentParser()
-parser.add_argument('--keep-temp-dir', action='store_true', default=False,
-    help="Do not delete temporary build directory after build.")
-parser.add_argument('--upload', action='store_true', default=False,
-    help="Upload files to enceladus.htu.")
-parser.add_argument('--no-pristine', action='store_false', dest='pristine',
-    default=True, help="Do not use pristine tars")
+parser = ArgumentParser(parents=[argparse_helpers.build_parser])
 parser.add_argument('-d', '--dist', help="Distribution we build for.")
 parser.add_argument('-a', '--arch', help="Architecture we build for.")
 args = parser.parse_args()

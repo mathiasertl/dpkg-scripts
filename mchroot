@@ -8,6 +8,7 @@ import sys
 
 from dpkg.env import DISTROS
 from dpkg.env import ARCHITECTURES
+from dpkg.argparse_helpers import build_parser
 
 parser = argparse.ArgumentParser(
     description='Execute command in multiple chroots via schroot.')
@@ -28,13 +29,20 @@ group.add_argument(
     '--dist', '-d', metavar='DIST',
     help='Only build on the specified distribution. (Overrides --sa, --fd and --ud)')
 
-subparsers = parser.add_subparsers(dest='cmd')
-build = subparsers.add_parser('build', aliases=['b'])
-login = subparsers.add_parser('login', aliases=['l'])
+subparsers = parser.add_subparsers(
+    dest='cmd', help="subcommands",
+    description='A subcommand describes an action for the specified chroots.')
+build = subparsers.add_parser(
+    'build', aliases=['b'], parents=[build_parser],
+    help="Build the package using git-build.py.",
+    description="Build the package using git-build.py. Any parameters are passed to git-build.py")
+login = subparsers.add_parser(
+    'login', aliases=['l'], help="Sequentially open a shell in every chroot.")
 login.add_argument('--save', default=False, action='store_true')
-update = subparsers.add_parser('update', aliases=['u'])
-execute = subparsers.add_parser('execute', aliases=['exec', 'e'])
-#parser.add_argument('args', nargs=argparse.REMAINDER)
+update = subparsers.add_parser(
+    'update', aliases=['u'], help="Update chroots.")
+execute = subparsers.add_parser('execute', aliases=['exec', 'e'],
+    help="Execute a command in every chroot - unfortunately not yet implemented.")
 args = parser.parse_args()
 
 failed = []
@@ -95,6 +103,10 @@ for dist in dists:
                     cmd.append('--save-after-login')
             elif args.cmd == 'build':
                 cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch]
+                if args.upload:
+                    cmd.append('--upload')
+                if not args.pristine:
+                    cmd.append('--no-pristine-tar')
             else:
                 print("Error: Unknown command: %s" % args.cmd)
                 continue
