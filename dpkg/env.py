@@ -123,10 +123,14 @@ def get_package_details():
             pkg = {'Package': line.split(": ", 1)[1].strip()}
             continue
 
-        if ':' in line and not line.startswith(' '):
-            field, value = line.split(": ", 1)
-            field.strip()
-            value.strip()
+        if ':' in line and not line.startswith(' ') and not line.strip().startswith('#'):
+            try:
+                field, value = line.split(": ", 1)
+                field.strip()
+                value.strip()
+            except ValueError:
+                field = line.strip(': ')
+                value = ''
 
             pkg[field] = value.strip()
         else:
