@@ -116,7 +116,7 @@ process.prepare(args.dist, dist_config_path, config)
 source_pkg, binary_pkgs = env.get_packages()
 
 # commit any changes:
-git_commit = ['git', 'commit', '-a', '-m', 'prepare package for %s' % args.dist]
+git_commit = ['git', 'commit', 'debian/', '-m', 'prepare package for %s' % args.dist]
 print(' '.join(git_commit))
 p = Popen(git_commit, stderr=PIPE)
 p.communicate()
