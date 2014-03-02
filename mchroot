@@ -109,7 +109,12 @@ for dist in dists:
                 if args.upload:
                     cmd.append('--upload')
                 if not args.pristine:
-                    cmd.append('--no-pristine-tar')
+                    cmd.append('--no-pristine')
+
+                    if args.upstream_tree:  # tree only has effect when not using pristine-tar
+                        cmd.append('--upstream-tree=%s' % args.upstream_tree)
+                        if args.upstream_branch:
+                            cmd.append('--upstream-branch=%s' % args.upstream_branch)
             else:
                 print("Error: Unknown command: %s" % args.cmd)
                 continue
