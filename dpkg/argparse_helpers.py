@@ -10,3 +10,11 @@ build_parser.add_argument(
 build_parser.add_argument(
     '--no-pristine', action='store_false', dest='pristine', default=True,
     help="Do not use pristine tars")
+build_parser.add_argument(
+    '--upstream-tree', dest='upstream_tree', default='tag',
+    choices=['tag', 'branch', ], metavar='[tag|branch]',
+    help="Get upstream sources from tree or branch. Has no effect unless --no-pristine is used.")
+build_parser.add_argument(
+    '--upstream-branch', dest='upstream_branch', default='debian', metavar='branch',
+    help="Branch to use when --git-usptream-tree is used. The default is 'debian'."
+)
