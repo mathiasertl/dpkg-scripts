@@ -39,6 +39,7 @@ build = subparsers.add_parser(
 login = subparsers.add_parser(
     'login', aliases=['l'], help="Sequentially open a shell in every chroot.")
 login.add_argument('--save', default=False, action='store_true')
+login.add_argument('--bindmounts', help="Bind given command into the chroot.")
 update = subparsers.add_parser(
     'update', aliases=['u'], help="Update chroots.")
 execute = subparsers.add_parser('execute', aliases=['exec', 'e'],
@@ -101,6 +102,8 @@ for dist in dists:
                 cmd = ['git-pbuilder', 'login', ]
                 if args.save:
                     cmd.append('--save-after-login')
+                if args.bindmounts:
+                    cmd += ['--bindmounts', args.bindmounts]
             elif args.cmd == 'build':
                 cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch]
                 if args.upload:
