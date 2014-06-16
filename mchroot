@@ -2,6 +2,7 @@
 
 import argparse
 import configparser
+import glob
 import os
 import subprocess
 import sys
@@ -12,8 +13,6 @@ from dpkg.argparse_helpers import build_parser
 
 parser = argparse.ArgumentParser(
     description='Execute command in multiple chroots via schroot.')
-parser.add_argument('--chroot-dir', metavar='DIR', default='/chroot',
-    help="Root directory that contains the chroots. (Default: %(default)s)")
 
 group = parser.add_argument_group('chroots', 'Chroots to execute for.')
 group.add_argument('--skip-arch', '--sa', metavar='ARCH', action='append',
@@ -51,18 +50,8 @@ cwd = os.getcwd()
 configpath = '/etc/dist-config'
 userpath = os.path.expanduser('~/.dist-config')
 
-# change to directory
-if not os.path.exists(args.chroot_dir):
-    print("Error: %s: No such file or directory." % args.chroot_dir,
-        file=sys.stderr)
-    sys.exit(1)
-
-# filter dists that have .skip in root directory:
-dists = set()
-if os.path.exists(configpath):
-    dists |= set([os.path.splitext(p)[0] for p in os.listdir(configpath)])
-if os.path.exists(userpath):
-    dists |= set([os.path.splitext(p)[0] for p in os.listdir(userpath)])
+cows = [os.path.basename(d) for d in glob.glob('/var/cache/pbuilder/base-*.cow')]
+dists = set([c.split('-')[1] for c in cows])
 
 # skip distributions named at the command-line:
 dists = sorted([d for d in dists if d not in args.skip_dist])
