@@ -108,7 +108,8 @@ def get_package_details():
     packages = {}
     field, value, pkg, pkg_name = None, None, None, None
     for line in lines:
-        if not line.strip():
+        stripped = line.strip()
+        if not stripped or stripped.startswith('#'):
             continue
 
         if line.startswith("Source: "):
@@ -123,7 +124,7 @@ def get_package_details():
             pkg = {'Package': line.split(": ", 1)[1].strip()}
             continue
 
-        if ':' in line and not line.startswith(' ') and not line.strip().startswith('#'):
+        if ':' in line and not line.startswith(' '):
             try:
                 field, value = line.split(": ", 1)
                 field.strip()
