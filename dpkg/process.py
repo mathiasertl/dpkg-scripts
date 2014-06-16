@@ -88,7 +88,7 @@ def prepare(dist, dist_config_path, config):
         release = env.get_release(dist, distrib_config)
 
         if release:
-            regex = '1s/(\(.*\)-\([^-]*\))/(\\1-\\2~%s)/' % release
+            regex = '1s/(\(.*\)\(-[^-]*\)\\?)/(\\1\\2~%s)/' % release
 
             for path in glob.glob('debian/*changelog'):
                 cmd = ['sed', '-i', regex, path]
