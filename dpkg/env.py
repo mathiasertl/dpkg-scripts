@@ -124,7 +124,9 @@ def get_package_details():
             pkg = {'Package': line.split(": ", 1)[1].strip()}
             continue
 
-        if ':' in line and not line.startswith(' '):
+        if line.startswith(' '):  # continuation field
+            pkg[field] += " %s" % line.strip()
+        elif ':' in line:
             try:
                 field, value = line.split(": ", 1)
                 field.strip()
@@ -135,7 +137,7 @@ def get_package_details():
 
             pkg[field] = value.strip()
         else:
-            pkg[field] += " %s" % line.strip()
+            print("Unable to parse line in debian/control:\n\t%s" % line)
 
     packages[pkg_name] = pkg
 
