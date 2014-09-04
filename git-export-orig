@@ -28,10 +28,11 @@ if args.version is None:
 else:
     version = args.version
 upstream_branch = gbp.upstream_branch()
+tag_format = gbp.upstream_tag()
 
 filename = '../%s_%s.orig.tar.gz' % (pkg, version)
 prefix = '%s-%s/' % (pkg, version)
-tag = 'upstream/%s' % version
+tag = tag_format % {'version': version}
 
 # check if tag already exists:
 p_taglist = Popen(['git', 'tag'], stdout=PIPE)

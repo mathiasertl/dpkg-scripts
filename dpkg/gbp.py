@@ -10,10 +10,13 @@ CONFIG_FILES = [
     'debian/gbp.conf',
     '.git/gbp.conf',
 ]
+config = None
 
 def get_config_value(value, default=None):
-    config = configparser.RawConfigParser()
-    config.read(CONFIG_FILES)
+    global config
+    if config is None:
+        config = configparser.RawConfigParser()
+        config.read(CONFIG_FILES)
     return config['DEFAULT'].get(value, default)
 
 def upstream_branch():
