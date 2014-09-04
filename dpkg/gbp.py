@@ -12,7 +12,7 @@ CONFIG_FILES = [
 ]
 
 def get_config_value(value, default=None):
-    config = configparser.ConfigParser()
+    config = configparser.RawConfigParser()
     config.read(CONFIG_FILES)
     return config['DEFAULT'].get(value, default)
 
