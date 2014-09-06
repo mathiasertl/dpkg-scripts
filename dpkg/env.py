@@ -22,8 +22,9 @@ DISTROS = [
     'wheezy',
     'raring',
     'saucy',
-    'jessie',
     'trusty',
+    'utopic',
+    'jessie',
     'unstable',
 ]
 ARCHITECTURES = ['amd64', 'i386', ]
