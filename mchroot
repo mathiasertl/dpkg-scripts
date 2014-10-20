@@ -5,7 +5,6 @@ import configparser
 import glob
 import os
 import subprocess
-import sys
 
 from dpkg.env import DISTROS
 from dpkg.env import ARCHITECTURES
@@ -44,6 +43,7 @@ update = subparsers.add_parser(
 execute = subparsers.add_parser('execute', aliases=['exec', 'e'],
     help="Execute a command in every chroot - unfortunately not yet implemented.")
 execute.add_argument('script', help="The script to execute.")
+execute.add_argument('--bindmounts', '--bind', '-b', help="Bind given path into the chroot.")
 args = parser.parse_args()
 
 failed = []
@@ -110,6 +110,8 @@ for dist in dists:
                 configfile = os.path.expanduser('~/.pbuilderrc')
                 cmd = ['sudo', 'cowbuilder', '--execute', args.script, '--dist', dist,
                        '--architecture', arch, '--basepath', basepath, '--configfile', configfile]
+                if args.bindmounts:
+                    cmd += ['--bindmounts', args.bindmounts]
             else:
                 print("Error: Unknown command: %s" % args.cmd)
                 continue
