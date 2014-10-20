@@ -133,6 +133,7 @@ if not os.path.exists(export_dir):
 # build package
 git_buildpackage = [
     'git-buildpackage',
+    '--git-cleaner=',
     '--git-export-dir=%s' % export_dir,
 ] + gbp_args
 print(' '.join(git_buildpackage))
