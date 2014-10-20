@@ -43,6 +43,7 @@ update = subparsers.add_parser(
     'update', aliases=['u'], help="Update chroots.")
 execute = subparsers.add_parser('execute', aliases=['exec', 'e'],
     help="Execute a command in every chroot - unfortunately not yet implemented.")
+execute.add_argument('script', help="The script to execute.")
 args = parser.parse_args()
 
 failed = []
@@ -104,6 +105,11 @@ for dist in dists:
                         cmd.append('--upstream-tree=%s' % args.upstream_tree)
                         if args.upstream_branch:
                             cmd.append('--upstream-branch=%s' % args.upstream_branch)
+            elif args.cmd == 'execute':
+                basepath = '/var/cache/pbuilder/base-%s-%s.cow' % (dist, arch)
+                configfile = os.path.expanduser('~/.pbuilderrc')
+                cmd = ['sudo', 'cowbuilder', '--execute', args.script, '--dist', dist,
+                       '--architecture', arch, '--basepath', basepath, '--configfile', configfile]
             else:
                 print("Error: Unknown command: %s" % args.cmd)
                 continue
