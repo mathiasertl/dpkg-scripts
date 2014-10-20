@@ -23,7 +23,7 @@ def upstream_branch():
     return get_config_value('upstream-branch', 'upstream')
 
 def master_branch():
-    return get_config_value('master-branch', 'master')
+    return get_config_value('debian-branch', 'master')
 
 def upstream_tag():
     return get_config_value('upstream-tag', 'upstream/%(version)s')
