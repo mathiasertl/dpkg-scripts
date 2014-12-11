@@ -25,7 +25,10 @@ group.add_argument('--until-dist', '--ud', metavar='DIST',
     help="Only build in distributions equal or older then DIST.")
 group.add_argument(
     '--dist', '-d', metavar='DIST',
-    help='Only build on the specified distribution. (Overrides --sa, --fd and --ud)')
+    help='Only build on the specified distribution. (Overrides --fd and --ud)')
+group.add_argument('--arch', '-a', metavar='ARCH',
+                   help="Only use specified architecture. Overrides --sa.")
+
 
 subparsers = parser.add_subparsers(
     dest='cmd', help="subcommands",
@@ -77,7 +80,10 @@ for dist in list(dists):
         dists.remove(dist)
 
 # honour archs:
-archs = [a for a in ARCHITECTURES if a not in args.skip_arch]
+if args.arch:
+    archs = [args.arch, ]
+else:
+    archs = [a for a in ARCHITECTURES if a not in args.skip_arch]
 
 # finally, loop over dists:
 for dist in dists:
