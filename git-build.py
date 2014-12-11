@@ -79,7 +79,7 @@ atexit.register(exit, orig_dir, temp_directory, args.keep_temp_dir)
 
 # move to temporary directory:
 temp_dest = os.path.join(temp_directory, os.path.basename(os.getcwd()))
-shutil.copytree('.', temp_dest)
+shutil.copytree('.', temp_dest, symlinks=True)
 os.chdir(temp_dest)
 
 # initialize the git-repository
