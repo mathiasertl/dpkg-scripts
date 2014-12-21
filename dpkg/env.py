@@ -25,6 +25,7 @@ DISTROS = [
     'trusty',
     'utopic',
     'jessie',
+    'vivid',
     'unstable',
 ]
 ARCHITECTURES = ['amd64', 'i386', ]
