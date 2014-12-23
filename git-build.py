@@ -96,7 +96,7 @@ if branch:
         branch.checkout()
 
 if args.upload:
-    postbuild = '--git-postbuild=dput %s-%s $GBP_CHANGES_FILE' % (args.dist, args.arch)
+    postbuild = '--git-postbuild=dput -f %s-%s $GBP_CHANGES_FILE' % (args.dist, args.arch)
     gbp_args.append(postbuild)
 
 if args.pristine:
