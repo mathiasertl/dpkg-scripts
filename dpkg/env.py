@@ -126,7 +126,7 @@ def get_package_details():
             pkg = {'Package': line.split(": ", 1)[1].strip()}
             continue
 
-        if line.startswith(' '):  # continuation field
+        if line.startswith(' ') or line.startswith('\t'):  # continuation field
             pkg[field] += " %s" % line.strip()
         elif ':' in line:
             try:
