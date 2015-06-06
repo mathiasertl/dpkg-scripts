@@ -1,4 +1,3 @@
-import os
 import re
 import sys
 
@@ -26,6 +25,8 @@ DISTROS = [
     'utopic',
     'jessie',
     'vivid',
+    'wily',
+    'stretch',
     'unstable',
 ]
 ARCHITECTURES = ['amd64', 'i386', ]
@@ -144,20 +145,6 @@ def get_package_details():
     packages[pkg_name] = pkg
 
     return packages
-
-
-def get_version(package=None):
-    test_dir()
-    changelog = 'debian/changelog'
-    if package and os.path.exists('debian/%s.changelog' % package):
-        changelog = 'debian/%s.changelog' % package
-
-    p1 = Popen(["dpkg-parsechangelog", '-l' + changelog], stdout=PIPE)
-    p2 = Popen(['grep', '^Version:'], stdin=p1.stdout, stdout=PIPE)
-    p3 = Popen(['sed', 's/Version: //'], stdin=p2.stdout, stdout=PIPE)
-    p4 = Popen(['sed', 's/.*://'], stdin=p3.stdout, stdout=PIPE)
-    version = p4.communicate()[0].strip()
-    return version
 
 
 def get_changelog_fields(changelog='debian/changelog'):
