@@ -47,6 +47,8 @@ execute = subparsers.add_parser('execute', aliases=['exec', 'e'],
     help="Execute a command in every chroot - unfortunately not yet implemented.")
 execute.add_argument('script', help="The script to execute.")
 execute.add_argument('--bindmounts', '--bind', '-b', help="Bind given path into the chroot.")
+execute.add_argument('--save', '-s', default=False, action='store_true',
+                     help="Update chroot after execution.")
 args = parser.parse_args()
 
 failed = []
@@ -118,6 +120,8 @@ for dist in dists:
                        '--architecture', arch, '--basepath', basepath, '--configfile', configfile]
                 if args.bindmounts:
                     cmd += ['--bindmounts', args.bindmounts]
+                if args.save:
+                    cmd.append('--save-after-login')
             else:
                 print("Error: Unknown command: %s" % args.cmd)
                 continue
