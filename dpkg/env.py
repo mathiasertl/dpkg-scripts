@@ -26,6 +26,7 @@ DISTROS = [
     'jessie',
     'vivid',
     'wily',
+    'xenial',
     'stretch',
     'unstable',
 ]
