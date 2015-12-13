@@ -18,3 +18,5 @@ build_parser.add_argument(
     '--upstream-branch', dest='upstream_branch', default='debian', metavar='branch',
     help="Branch to use when --git-usptream-tree is used. The default is 'debian'."
 )
+build_parser.add_argument('-s', '--sa', '--include-source', default=False, action='store_true',
+                          help="Include original source even if Debian revision > 1.")
