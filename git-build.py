@@ -105,6 +105,8 @@ elif args.upstream_tree:
     gbp_args.append('--git-upstream-tree=%s' % args.upstream_tree)
     if args.upstream_branch:
         gbp_args.append('--git-upstream-branch=%s' % args.upstream_branch)
+if args.sa:
+    gbp_args.append('-sa')
 
 # see if we have only arch-independent packages, if yes, only build on amd64:
 details = env.get_package_details()

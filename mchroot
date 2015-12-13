@@ -106,6 +106,8 @@ for dist in dists:
                 cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch]
                 if args.upload:
                     cmd.append('--upload')
+                if args.sa:
+                    cmd.append('-s')
                 if not args.pristine:
                     cmd.append('--no-pristine')
 
