@@ -29,7 +29,7 @@ if args.arch is None:
 
 # default values:
 gbp_args = [
-    '--git-pbuilder', '--git-dist=%s' % args.dist, '--git-arch=%s' % args.arch,
+    '--git-pbuilder', '--git-dist=%s' % args.dist, '--git-arch=%s' % args.arch, '-nc',
 ]
 
 # basic environment:
