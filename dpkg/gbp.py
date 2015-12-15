@@ -30,3 +30,6 @@ def upstream_tag():
 
 def debian_tag():
     return get_config_value('debian-tag', 'debian/%(version)s')
+
+def compression():
+    return get_config_value('compression', 'gzip')
