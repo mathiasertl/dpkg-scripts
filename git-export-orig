@@ -29,8 +29,16 @@ else:
     version = args.version
 upstream_branch = gbp.upstream_branch()
 tag_format = gbp.upstream_tag()
+compression = gbp.compression()
 
-filename = '../%s_%s.orig.tar.gz' % (pkg, version)
+if compression == 'gzip':
+    filename = '../%s_%s.orig.tar.gz' % (pkg, version)
+    compression_cmd = ['gzip']
+elif compression == 'xz':
+    filename = '../%s_%s.orig.tar.xz' % (pkg, version)
+    compression_cmd = ['xz']
+else:
+    raise RuntimeError("Unsupported compression format")
 prefix = '%s-%s/' % (pkg, version)
 tag = tag_format % {'version': version}
 
@@ -53,9 +61,9 @@ else:
 f = open(filename, 'w')
 
 archive_cmd = ['git', 'archive', '--prefix=%s' % prefix, tag]
-print('%s | gzip > %s' % (' '.join(archive_cmd), filename))
+print('%s | %s > %s' % (' '.join(archive_cmd), ' '.join(compression_cmd), filename))
 p1 = Popen(archive_cmd, stdout=PIPE, stderr=PIPE)
-p2 = Popen('gzip', stdin=p1.stdout, stdout=f)
+p2 = Popen(compression_cmd, stdin=p1.stdout, stdout=f)
 p1.wait()
 p1.stdout.close()
 p2_stderr = p2.communicate()[1]
