@@ -3,6 +3,8 @@ import sys
 
 from subprocess import Popen, PIPE
 
+from dpkg import gbp
+
 # available distros, in order of release
 # NOTE: do not remove old distros, as this list is used
 #    to determine increasing debian revision numbers.
@@ -33,19 +35,16 @@ DISTROS = [
 ARCHITECTURES = ['amd64', 'i386', ]
 
 
-def would_build(config, dist):
-    if config.has_section('distros'):
-        raise Exception("gbp-config: Found old 'distros' section, use 'DEFAULT' instead")
-
+def would_build(dist):
     build_distros = DISTROS
-    if config.has_option('DEFAULT', 'until'):
-        until = config.get('DEFAULT', 'until')
+    if gbp.has_option('until'):
+        until = gbp.get('until')
         build_distros = build_distros[:build_distros.index(until) + 1]
-    if config.has_option('DEFAULT', 'from'):
-        until = config.get('DEFAULT', 'from')
+    if gbp.has_option('from'):
+        until = gbp.get('from')
         build_distros = build_distros[build_distros.index(until):]
-    if config.has_option('DEFAULT', 'exclude'):
-        exclude = config.get('DEFAULT', 'exclude').split()
+    if gbp.has_option('exclude'):
+        exclude = gbp.get('exclude').split()
         build_distros = [d for d in build_distros if d not in exclude]
 
     if dist in build_distros:

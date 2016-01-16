@@ -58,7 +58,7 @@ dist_config_path = [
 ]
 
 # check if we would build in this distro
-if not env.would_build(config, args.dist):
+if not env.would_build(args.dist):
     print("Not building on %s." % args.dist)
     sys.exit()
 
