@@ -96,6 +96,10 @@ if args.cmd in ['build', 'upload', ] and not os.path.exists(os.path.join('debian
 
 # finally, loop over dists:
 for dist in dists:
+    if args.cmd in ['build', 'upload', ] and not env.would_build(dist):
+        print('Not building on %s.' % dist)
+        continue
+
     for arch in archs:
         if os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (dist, arch)):
             os.environ['DIST'] = dist
