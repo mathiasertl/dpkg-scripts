@@ -1,7 +1,8 @@
 # helper functions for git-buildpackage related tasks
 
-import configparser
 import os
+
+from six.moves import configparser
 
 CONFIG_FILES = [
     '/etc/git-buildpackage/gbp.conf',
@@ -12,12 +13,12 @@ CONFIG_FILES = [
 ]
 config = None
 
-def get(value, default=None):
+def get(value):
     global config
     if config is None:
         config = configparser.RawConfigParser()
         config.read(CONFIG_FILES)
-    return config['DEFAULT'].get(value, default)
+    return config.get('DEFAULT', value)
 
 def has_option(value):
     global config
