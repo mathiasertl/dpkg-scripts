@@ -127,16 +127,23 @@ for dist in dists:
                 if args.save:
                     cmd.append('--save-after-login')
             elif args.cmd == 'upload':
-                print('%s-%s' % (dist, arch))
                 if not os.path.exists('debian'):
                     print("Error: Not a debian package.")
                     break
 
-                # check if we would build in this distro
-                if not env.would_build(dist):
+                #changes = 'erlang-xmlrpc_1.15-0.1~afa80_i386.changes'
+                changelog_fields = env.get_changelog_fields()
+                changes_glob = '%s_%s*_%s.changes' % (changelog_fields['package'],
+                                                       changelog_fields['version'], arch)
+                build_dir = os.path.expanduser('~/build')
+                changes_glob = os.path.join(build_dir, '%s-%s' % (dist, arch), changes_glob)
+                changes_glob = glob.glob(changes_glob)
+                if changes_glob:
+                    changes_file = sorted(changes_glob)[-1]
+                    cmd = ['dput', '-f', '%s-%s' % (dist, arch), changes_file]
+                else:
+                    print('Warning: No changes file in %s-%s found.' % (dist, arch))
                     continue
-
-                continue
             else:
                 print("Error: Unknown command: %s" % args.cmd)
                 continue
