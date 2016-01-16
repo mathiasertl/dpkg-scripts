@@ -69,15 +69,6 @@ def prepare(dist, dist_config_path, config):
     p = Popen(['sed', '-i', sed_ex, 'debian/changelog'])
     p.communicate()
 
-    # replace __DATE__
-    pdate = Popen(['date', '-R'], stdout=PIPE)
-    timestamp = pdate.communicate()[0].decode('utf_8').strip()
-    p1 = Popen(['find', 'debian/', '-maxdepth', '1', '-type', 'f'],
-               stdout=PIPE)
-    p2 = Popen(['xargs', 'sed', '-i', 's/__DATE__/' + timestamp + '/'],
-               stdin=p1.stdout)
-    p2.communicate()
-
     if config.has_option('DEFAULT', 'prepare'):
         cmd = config.get('DEFAULT', 'prepare')
         print(cmd)
