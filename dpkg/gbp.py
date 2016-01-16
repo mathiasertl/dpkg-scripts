@@ -12,24 +12,31 @@ CONFIG_FILES = [
 ]
 config = None
 
-def get_config_value(value, default=None):
+def get(value, default=None):
     global config
     if config is None:
         config = configparser.RawConfigParser()
         config.read(CONFIG_FILES)
     return config['DEFAULT'].get(value, default)
 
+def has_option(value):
+    global config
+    if config is None:
+        config = configparser.RawConfigParser()
+        config.read(CONFIG_FILES)
+    return config.has_option('DEFAULT', value)
+
 def upstream_branch():
-    return get_config_value('upstream-branch', 'upstream')
+    return get('upstream-branch', 'upstream')
 
 def master_branch():
-    return get_config_value('debian-branch', 'master')
+    return get('debian-branch', 'master')
 
 def upstream_tag():
-    return get_config_value('upstream-tag', 'upstream/%(version)s')
+    return get('upstream-tag', 'upstream/%(version)s')
 
 def debian_tag():
-    return get_config_value('debian-tag', 'debian/%(version)s')
+    return get('debian-tag', 'debian/%(version)s')
 
 def compression():
-    return get_config_value('compression', 'gzip')
+    return get('compression', 'gzip')
