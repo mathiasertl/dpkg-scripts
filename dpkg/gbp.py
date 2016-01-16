@@ -1,6 +1,9 @@
 # helper functions for git-buildpackage related tasks
 
 import os
+import sys
+
+import six
 
 from six.moves import configparser
 
@@ -13,12 +16,20 @@ CONFIG_FILES = [
 ]
 config = None
 
-def get(value):
+
+def get(value, default=None):
     global config
     if config is None:
         config = configparser.RawConfigParser()
         config.read(CONFIG_FILES)
-    return config.get('DEFAULT', value)
+    try:
+        return config.get('DEFAULT', value)
+    except configparser.NoOptionError:
+        if default is not None:
+            return default
+        else:
+            six.reraise(*sys.exc_info())
+
 
 def has_option(value):
     global config
@@ -27,17 +38,22 @@ def has_option(value):
         config.read(CONFIG_FILES)
     return config.has_option('DEFAULT', value)
 
+
 def upstream_branch():
     return get('upstream-branch', 'upstream')
+
 
 def master_branch():
     return get('debian-branch', 'master')
 
+
 def upstream_tag():
     return get('upstream-tag', 'upstream/%(version)s')
 
+
 def debian_tag():
     return get('debian-tag', 'debian/%(version)s')
+
 
 def compression():
     return get('compression', 'gzip')
