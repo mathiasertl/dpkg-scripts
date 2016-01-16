@@ -44,10 +44,6 @@ def prepare(dist, dist_config_path, config):
     distrib_config = configparser.ConfigParser()
     distrib_config.read(dist_config_path)
 
-    # error on old sections
-    if distrib_config.has_section('defaults'):
-        raise Exception("dist-config: Found old 'defaults' section, use 'DEFAULT' instead.")
-
     # set compat level to distro-specific value
     compat = distrib_config.get('DEFAULT', 'compat')
     print("Set debian/compat to " + compat + "...")
