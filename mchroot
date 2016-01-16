@@ -6,6 +6,7 @@ import glob
 import os
 import subprocess
 
+from dpkg import env
 from dpkg.env import DISTROS
 from dpkg.env import ARCHITECTURES
 from dpkg.argparse_helpers import build_parser
@@ -49,6 +50,7 @@ execute.add_argument('script', help="The script to execute.")
 execute.add_argument('--bindmounts', '--bind', '-b', help="Bind given path into the chroot.")
 execute.add_argument('--save', '-s', default=False, action='store_true',
                      help="Update chroot after execution.")
+upload = subparsers.add_parser('upload', help="Upload previously built package.")
 args = parser.parse_args()
 
 failed = []
@@ -124,6 +126,17 @@ for dist in dists:
                     cmd += ['--bindmounts', args.bindmounts]
                 if args.save:
                     cmd.append('--save-after-login')
+            elif args.cmd == 'upload':
+                print('%s-%s' % (dist, arch))
+                if not os.path.exists('debian'):
+                    print("Error: Not a debian package.")
+                    break
+
+                # check if we would build in this distro
+                if not env.would_build(dist):
+                    continue
+
+                continue
             else:
                 print("Error: Unknown command: %s" % args.cmd)
                 continue
