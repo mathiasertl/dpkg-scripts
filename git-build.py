@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
 import ConfigParser
-import atexit
 import os
-import shutil
-import tempfile
 import sys
 
 from argparse import ArgumentParser
@@ -61,26 +58,6 @@ dist_config_path = [
 if not env.would_build(args.dist):
     print("Not building on %s." % args.dist)
     sys.exit()
-
-# exit handler
-orig_dir = os.getcwd()
-
-def exit(orig_dir, temp_directory, keep):
-    os.chdir(orig_dir)
-    if keep:
-        print('Temporary directory is %s' % temp_directory)
-    elif os.path.exists(temp_directory):
-        print('Removing %s...' % temp_directory)
-        shutil.rmtree(temp_directory)
-
-# create temporary directory:
-temp_directory = tempfile.mkdtemp()
-atexit.register(exit, orig_dir, temp_directory, args.keep_temp_dir)
-
-# move to temporary directory:
-temp_dest = os.path.join(temp_directory, os.path.basename(os.getcwd()))
-shutil.copytree('.', temp_dest, symlinks=True)
-os.chdir(temp_dest)
 
 # initialize the git-repository
 repo = Repo(".")
