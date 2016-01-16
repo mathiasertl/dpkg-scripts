@@ -5,6 +5,7 @@ import configparser
 import glob
 import os
 import subprocess
+import sys
 
 from dpkg import env
 from dpkg.env import DISTROS
@@ -89,6 +90,10 @@ if args.arch:
 else:
     archs = [a for a in ARCHITECTURES if a not in args.skip_arch]
 
+if args.cmd in ['build', 'upload', ] and not os.path.exists(os.path.join('debian', 'changelog')):
+    print('Error: Not a debian package.')
+    sys.exit(1)
+
 # finally, loop over dists:
 for dist in dists:
     for arch in archs:
@@ -127,11 +132,6 @@ for dist in dists:
                 if args.save:
                     cmd.append('--save-after-login')
             elif args.cmd == 'upload':
-                if not os.path.exists('debian'):
-                    print("Error: Not a debian package.")
-                    break
-
-                #changes = 'erlang-xmlrpc_1.15-0.1~afa80_i386.changes'
                 changelog_fields = env.get_changelog_fields()
                 changes_glob = '%s_%s*_%s.changes' % (changelog_fields['package'],
                                                        changelog_fields['version'], arch)
