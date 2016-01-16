@@ -16,12 +16,15 @@ CONFIG_FILES = [
 ]
 config = None
 
-
-def get(value, default=None):
+def get_config():
     global config
     if config is None:
         config = configparser.RawConfigParser()
         config.read(CONFIG_FILES)
+    return config
+
+def get(value, default=None):
+    config = get_config()
     try:
         return config.get('DEFAULT', value)
     except configparser.NoOptionError:
@@ -32,10 +35,7 @@ def get(value, default=None):
 
 
 def has_option(value):
-    global config
-    if config is None:
-        config = configparser.RawConfigParser()
-        config.read(CONFIG_FILES)
+    config = get_config()
     return config.has_option('DEFAULT', value)
 
 
