@@ -72,6 +72,9 @@ if branch:
     if repo.head.reference != branch:
         branch.checkout()
 
+postexport = '--git-postexport=%s' % '; '.join(
+    process.postexport_cmds(args.dist, dist_config_path, config))
+
 if args.upload:
     postbuild = '--git-postbuild=dput -f %s-%s $GBP_CHANGES_FILE' % (args.dist, args.arch)
     gbp_args.append(postbuild)
@@ -92,17 +95,8 @@ if set(['all']) == archs and args.arch != 'amd64':
     print('Only arch-independent packages found and not on amd64!')
     sys.exit()
 
-# prepare package
-process.prepare(args.dist, dist_config_path, config)
-
 # get package details:
 source_pkg, binary_pkgs = env.get_packages()
-
-# commit any changes:
-git_commit = ['git', 'commit', 'debian/', '-m', 'prepare package for %s' % args.dist]
-print(' '.join(git_commit))
-p = Popen(git_commit, stderr=PIPE)
-p.communicate()
 
 # create export_dir
 export_dir = os.path.join(build_dir, '%s-%s' % (args.dist, args.arch))
@@ -114,6 +108,7 @@ git_buildpackage = [
     'git-buildpackage',
     '--git-cleaner=',
     '--git-export-dir=%s' % export_dir,
+    postexport,
 ] + gbp_args
 print(' '.join(git_buildpackage))
 p = Popen(git_buildpackage, stderr=PIPE)
