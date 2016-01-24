@@ -1,10 +1,6 @@
 import env
 import gbp
-
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
+import dist_config
 
 
 def get_branch(repo, dist, dist_id=None):
@@ -34,17 +30,14 @@ def get_branch(repo, dist, dist_id=None):
     return None
 
 
-def get_version(dist, dist_config):
+def get_version(dist):
     """Get the version to build for the given distribution."""
 
     changelog_fields = env.get_changelog_fields()
     version = changelog_fields['version']
 
-    distrib_config = configparser.ConfigParser()
-    distrib_config.read(dist_config)
-
     if gbp.getboolean('append-dist'):
-        release = env.get_release(dist, distrib_config)
+        release = env.get_release(dist, dist_config)
 
         if release:
             return '%s~%s' % (version, release)
@@ -52,31 +45,28 @@ def get_version(dist, dist_config):
     return version
 
 
-def postexport_cmds(dist, dist_config_path):
+def postexport_cmds(dist):
     cmds = []
     env.test_dir()
 
-    distrib_config = configparser.ConfigParser()
-    distrib_config.read(dist_config_path)
-
     # update debian/compat
-    compat = distrib_config.get('DEFAULT', 'compat')
+    compat = dist_config.get(dist, 'compat')
     cmds.append('echo %s > debian/compat' % compat)
 
     # set Standards-Version field
-    standards = distrib_config.get('DEFAULT', 'standards')
+    standards = dist_config.get(dist, 'standards')
     sed_ex = 's/^Standards-Version:.*/Standards-Version: %s/' % standards
     cmds.append('sed -i "%s" debian/control' % sed_ex)
 
     # set distribution in topmost entry in changes-file:
-    if distrib_config.has_option('DEFAULT', 'name'):
-        dist = distrib_config.get('DEFAULT', 'name')
+    if dist_config.has_option(dist, 'name'):
+        dist = dist_config.get(dist, 'name')
     sed_ex = '1s/) [^;]*;/) %s;/' % dist
     cmds.append('sed -i "%s" debian/changelog' % sed_ex)
 
     # append version if requested
     if gbp.getboolean('append-dist'):
-        release = env.get_release(dist, distrib_config)
+        release = env.get_release(dist)
 
         if release:
             regex = '1s/(\(.*\)\(-[^-]*\)\\?)/(\\1\\2~%s)/' % release

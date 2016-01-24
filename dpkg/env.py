@@ -4,6 +4,7 @@ import sys
 from subprocess import Popen, PIPE
 
 from dpkg import gbp
+from dpkg import dist_config
 
 # available distros, in order of release
 # NOTE: do not remove old distros, as this list is used
@@ -53,12 +54,9 @@ def would_build(dist):
         return False
 
 
-def get_release(dist, dist_config):
-    if dist_config.has_section('defaults'):
-        raise Exception('dist-config: Using old section name "defaults", use DEFAULTS instead!')
-
-    if dist_config.has_option('DEFAULT', 'release'):
-        return dist_config.get('DEFAULT', 'release')
+def get_release(dist):
+    if dist_config.has_option(dist, 'release'):
+        return dist_config.get(dist, 'release')
     return dist
 
 

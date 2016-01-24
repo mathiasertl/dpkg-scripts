@@ -39,14 +39,6 @@ if not os.path.exists(cow_path):
     print('Error: %s: Directory not found.')
     sys.exit(1)
 
-# get path to dist-config
-scriptpath = os.path.dirname(os.path.realpath(__file__))
-dist_config_path = [
-    os.path.join(scriptpath, 'dist-config', '%s.cfg' % args.dist),
-    os.path.join(os.path.expanduser('~/.dist-config'), '%s.cfg' % args.dist),
-    os.path.join('/etc/dist-config', '%s.cfg' % args.dist),
-]
-
 # check if we would build in this distro
 if not env.would_build(args.dist):
     print("Not building on %s." % args.dist)
@@ -65,8 +57,7 @@ if branch:
     if repo.head.reference != branch:
         branch.checkout()
 
-postexport = '--git-postexport=%s' % '; '.join(
-    process.postexport_cmds(args.dist, dist_config_path))
+postexport = '--git-postexport=%s' % '; '.join(process.postexport_cmds(args.dist))
 
 if args.upload:
     postbuild = '--git-postbuild=dput -f %s-%s $GBP_CHANGES_FILE' % (args.dist, args.arch)
