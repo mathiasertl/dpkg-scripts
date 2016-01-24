@@ -1,6 +1,10 @@
-import env
-import gbp
-import dist_config
+from __future__ import absolute_import
+
+import os
+
+from . import env
+from . import gbp
+from . import dist_config
 
 
 def get_branch(repo, dist, dist_id=None):
@@ -70,3 +74,11 @@ def postexport_cmds(dist):
         cmds.append('sed -i "%s" debian/changelog' % regex)
 
     return cmds
+
+
+def get_changes_file(dist, arch):
+    changelog_fields = env.get_changelog_fields()
+    version = changelog_fields['version']
+    changes = '%s_%s_%s.changes' % (changelog_fields['package'], version, arch)
+    path = os.path.join(os.path.expanduser('~/build'), '%s-%s' % (dist, arch))
+    return os.path.join(path, changes)
