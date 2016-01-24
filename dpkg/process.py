@@ -1,9 +1,4 @@
 import env
-import glob
-import shlex
-
-from subprocess import PIPE
-from subprocess import Popen
 
 try:
     import configparser
@@ -36,6 +31,24 @@ def get_branch(repo, config, dist, dist_id=None):
         return getattr(repo.heads, 'ubuntu/%s' % dist)
 
     return None
+
+
+def get_version(config, dist, dist_config):
+    """Get the version to build for the given distribution."""
+
+    changelog_fields = env.get_changelog_fields()
+    version = changelog_fields['version']
+
+    distrib_config = configparser.ConfigParser()
+    distrib_config.read(dist_config)
+
+    if config.getboolean('DEFAULT', 'append-dist'):
+        release = env.get_release(dist, distrib_config)
+
+        if release:
+            return '%s~%s' % (version, release)
+
+    return version
 
 
 def postexport_cmds(dist, dist_config_path, config):
