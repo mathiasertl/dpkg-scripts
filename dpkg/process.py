@@ -37,12 +37,12 @@ def get_version(dist):
     version = changelog_fields['version']
 
     if gbp.getboolean('append-dist'):
-        release = env.get_release(dist, dist_config)
+        release = env.get_release(dist)
 
         if release:
-            return '%s~%s' % (version, release)
+            return True, '%s~%s' % (version, release)
 
-    return version
+    return False, version
 
 
 def postexport_cmds(dist):
@@ -64,12 +64,9 @@ def postexport_cmds(dist):
     sed_ex = '1s/) [^;]*;/) %s;/' % dist
     cmds.append('sed -i "%s" debian/changelog' % sed_ex)
 
-    # append version if requested
-    if gbp.getboolean('append-dist'):
-        release = env.get_release(dist)
-
-        if release:
-            regex = '1s/(\(.*\)\(-[^-]*\)\\?)/(\\1\\2~%s)/' % release
-            cmds.append('sed -i "%s" debian/*changelog' % regex)
+    update, version = get_version(dist)
+    if update:
+        regex = '1s/(.*)/(%s)/' % version
+        cmds.append('sed -i "%s" debian/changelog' % regex)
 
     return cmds
