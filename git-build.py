@@ -60,7 +60,11 @@ if branch:
 postexport = '--git-postexport=%s' % '; '.join(process.postexport_cmds(args.dist))
 
 if args.upload:
-    postbuild = '--git-postbuild=dput -f %s-%s $GBP_CHANGES_FILE' % (args.dist, args.arch)
+    # NOTE: We do not use $GBP_CHANGES_FILE for the changes file, because the version is updated in
+    # the postexport script and $GBP_CHANGES_FILE seems to be computed before that, so the location
+    # of the changes-file does not add up.
+    changes_file = process.get_changes_file(args.dist, args.arch)
+    postbuild = '--git-postbuild=dput -f %s-%s %s' % (args.dist, args.arch, changes_file)
     gbp_args.append(postbuild)
 
 if args.pristine:
