@@ -33,6 +33,16 @@ def get(value, default=None):
         else:
             six.reraise(*sys.exc_info())
 
+def getboolean(value, default=None):
+    config = get_config()
+    try:
+        return config.getboolean('DEFAULT', value)
+    except configparser.NoOptionError:
+        if default is not None:
+            return default
+        else:
+            six.reraise(*sys.exc_info())
+
 
 def has_option(value):
     config = get_config()
