@@ -40,7 +40,9 @@ if not os.path.exists(cow_path):
     sys.exit(1)
 
 # get path to dist-config
+scriptpath = os.path.dirname(os.path.realpath(__file__))
 dist_config_path = [
+    os.path.join(scriptpath, 'dist-config', '%s.cfg' % args.dist),
     os.path.join(os.path.expanduser('~/.dist-config'), '%s.cfg' % args.dist),
     os.path.join('/etc/dist-config', '%s.cfg' % args.dist),
 ]
