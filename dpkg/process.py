@@ -10,8 +10,8 @@ except ImportError:
 def get_branch(repo, dist, dist_id=None):
     # see if config-file gives a branch:
     option = '%s-branch' % dist
-    if gbp.has_option('DEFAULT', option):
-        branch_name = gbp.get('DEFAULT', option)
+    if gbp.has_option(option):
+        branch_name = gbp.get(option)
         if hasattr(repo.heads, branch_name):
             return getattr(repo.heads, branch_name)
         else:
