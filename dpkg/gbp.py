@@ -19,7 +19,7 @@ config = None
 def get_config():
     global config
     if config is None:
-        config = configparser.RawConfigParser()
+        config = configparser.RawConfigParser({'append-dist': 'true'})
         config.read(CONFIG_FILES)
     return config
 
