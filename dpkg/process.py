@@ -78,7 +78,10 @@ def postexport_cmds(dist):
 
 def get_changes_file(dist, arch):
     changelog_fields = env.get_changelog_fields()
-    version = changelog_fields['version']
+    version = get_version(dist)[1]
+    if ':' in version:  # epoch is not part of the changes file
+        version = version.split(':', 1)[1]
+
     changes = '%s_%s_%s.changes' % (changelog_fields['package'], version, arch)
     path = os.path.join(os.path.expanduser('~/build'), '%s-%s' % (dist, arch))
     return os.path.join(path, changes)
