@@ -38,6 +38,38 @@ def get_branch(repo, config, dist, dist_id=None):
     return None
 
 
+def postexport_cmds(dist, dist_config_path, config):
+    cmds = []
+    env.test_dir()
+
+    distrib_config = configparser.ConfigParser()
+    distrib_config.read(dist_config_path)
+
+    # update debian/compat
+    compat = distrib_config.get('DEFAULT', 'compat')
+    cmds.append('echo %s > debian/compat' % compat)
+
+    # set Standards-Version field
+    standards = distrib_config.get('DEFAULT', 'standards')
+    sed_ex = 's/^Standards-Version:.*/Standards-Version: %s/' % standards
+    cmds.append('sed -i "%s" debian/control' % sed_ex)
+
+    # set distribution in topmost entry in changes-file:
+    if distrib_config.has_option('DEFAULT', 'name'):
+        dist = distrib_config.get('DEFAULT', 'name')
+    sed_ex = '1s/) [^;]*;/) %s;/' % dist
+    cmds.append('sed -i "%s" debian/changelog' % sed_ex)
+
+    # append version if requested
+    if config.getboolean('DEFAULT', 'append-dist'):
+        release = env.get_release(dist, distrib_config)
+
+        if release:
+            regex = '1s/(\(.*\)\(-[^-]*\)\\?)/(\\1\\2~%s)/' % release
+            cmds.append('sed -i "%s" debian/*changelog' % regex)
+
+    return cmds
+
 def prepare(dist, dist_config_path, config):
     env.test_dir()
 
