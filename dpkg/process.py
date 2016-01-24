@@ -52,7 +52,7 @@ def get_version(dist, dist_config):
     return version
 
 
-def postexport_cmds(dist, dist_config_path, config):
+def postexport_cmds(dist, dist_config_path):
     cmds = []
     env.test_dir()
 
