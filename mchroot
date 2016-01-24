@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from dpkg import env
+from dpkg import process
 from dpkg.env import DISTROS
 from dpkg.env import ARCHITECTURES
 from dpkg.argparse_helpers import build_parser
@@ -136,17 +137,8 @@ for dist in dists:
                 if args.save:
                     cmd.append('--save-after-login')
             elif args.cmd == 'upload':
-                changelog_fields = env.get_changelog_fields()
-                version = changelog_fields['version']
-                if ':' in version:
-                    version = version.split(':', 1)[1]
-                changes_glob = '%s_%s*_%s.changes' % (changelog_fields['package'], version, arch)
-
-                build_dir = os.path.expanduser('~/build')
-                changes_glob = os.path.join(build_dir, '%s-%s' % (dist, arch), changes_glob)
-                changes_glob = glob.glob(changes_glob)
-                if changes_glob:
-                    changes_file = sorted(changes_glob)[-1]
+                changes_file = process.get_changes_file(dist, arch)
+                if os.path.exists(changes_file):
                     cmd = ['dput', '-f', '%s-%s' % (dist, arch), changes_file]
                 else:
                     print('Warning: No changes file in %s-%s found.' % (dist, arch))
