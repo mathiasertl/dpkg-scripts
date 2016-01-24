@@ -137,8 +137,11 @@ for dist in dists:
                     cmd.append('--save-after-login')
             elif args.cmd == 'upload':
                 changelog_fields = env.get_changelog_fields()
-                changes_glob = '%s_%s*_%s.changes' % (changelog_fields['package'],
-                                                       changelog_fields['version'], arch)
+                version = changelog_fields['version']
+                if ':' in version:
+                    version = version.split(':', 1)[1]
+                changes_glob = '%s_%s*_%s.changes' % (changelog_fields['package'], version, arch)
+
                 build_dir = os.path.expanduser('~/build')
                 changes_glob = os.path.join(build_dir, '%s-%s' % (dist, arch), changes_glob)
                 changes_glob = glob.glob(changes_glob)
