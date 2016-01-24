@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import ConfigParser
 import os
 import sys
 
@@ -40,13 +39,6 @@ if not os.path.exists(cow_path):
     print('Error: %s: Directory not found.')
     sys.exit(1)
 
-# config
-config = ConfigParser.ConfigParser({'append-dist': 'true'})
-config.read([
-    'debian/gbp.conf',
-    '.git/gbp.conf',
-])
-
 # get path to dist-config
 scriptpath = os.path.dirname(os.path.realpath(__file__))
 dist_config_path = [
@@ -64,7 +56,7 @@ repo = Repo(".")
 orig_branch = repo.head.reference
 
 # checkout any dist-specific banch:
-branch = process.get_branch(repo, config, args.dist)
+branch = process.get_branch(repo, args.dist)
 if branch:
     print('Using branch %s...' % branch.name)
     gbp_args += ['--git-debian-branch=%s' % branch.name]

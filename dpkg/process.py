@@ -7,11 +7,11 @@ except ImportError:
     import ConfigParser as configparser
 
 
-def get_branch(repo, config, dist, dist_id=None):
+def get_branch(repo, dist, dist_id=None):
     # see if config-file gives a branch:
     option = '%s-branch' % dist
-    if config.has_option('DEFAULT', option):
-        branch_name = config.get('DEFAULT', option)
+    if gbp.has_option('DEFAULT', option):
+        branch_name = gbp.get('DEFAULT', option)
         if hasattr(repo.heads, branch_name):
             return getattr(repo.heads, branch_name)
         else:
