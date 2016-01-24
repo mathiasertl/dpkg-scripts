@@ -73,7 +73,7 @@ if branch:
         branch.checkout()
 
 postexport = '--git-postexport=%s' % '; '.join(
-    process.postexport_cmds(args.dist, dist_config_path, config))
+    process.postexport_cmds(args.dist, dist_config_path))
 
 if args.upload:
     postbuild = '--git-postbuild=dput -f %s-%s $GBP_CHANGES_FILE' % (args.dist, args.arch)

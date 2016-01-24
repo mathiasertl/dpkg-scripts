@@ -1,4 +1,5 @@
 import env
+import gbp
 
 try:
     import configparser
@@ -33,7 +34,7 @@ def get_branch(repo, config, dist, dist_id=None):
     return None
 
 
-def get_version(config, dist, dist_config):
+def get_version(dist, dist_config):
     """Get the version to build for the given distribution."""
 
     changelog_fields = env.get_changelog_fields()
@@ -42,7 +43,7 @@ def get_version(config, dist, dist_config):
     distrib_config = configparser.ConfigParser()
     distrib_config.read(dist_config)
 
-    if config.getboolean('DEFAULT', 'append-dist'):
+    if gbp.getboolean('append-dist'):
         release = env.get_release(dist, distrib_config)
 
         if release:
@@ -74,7 +75,7 @@ def postexport_cmds(dist, dist_config_path, config):
     cmds.append('sed -i "%s" debian/changelog' % sed_ex)
 
     # append version if requested
-    if config.getboolean('DEFAULT', 'append-dist'):
+    if gbp.getboolean('append-dist'):
         release = env.get_release(dist, distrib_config)
 
         if release:
