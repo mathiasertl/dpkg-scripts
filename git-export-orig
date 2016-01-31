@@ -24,7 +24,7 @@ if not os.path.exists('debian/control'):
 
 pkg = env.get_source_package()
 if args.version is None:
-    version = env.get_version()['version']
+    version = env.get_source_version()
 else:
     version = args.version
 upstream_branch = gbp.upstream_branch()

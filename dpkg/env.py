@@ -155,3 +155,11 @@ def get_changelog_fields(changelog='debian/changelog'):
 
 def get_source_package(changelog='debian/changelog'):
     return get_changelog_fields(changelog)['package']
+
+def get_source_version(changelog='debian/changelog'):
+    version = get_changelog_fields(changelog)['version']
+    version = version.split('-', 1)[0]
+    if ':' in version:
+        version = version.split(':', 1)[1]
+
+    return version
