@@ -4,7 +4,7 @@ import os
 import sys
 
 from argparse import ArgumentParser
-from subprocess import Popen, PIPE
+from subprocess import Popen
 from dpkg import env, process, argparse_helpers
 from git import Repo
 
@@ -99,8 +99,7 @@ git_buildpackage = [
     postexport,
 ] + gbp_args
 print(' '.join(git_buildpackage))
-p = Popen(git_buildpackage, stderr=PIPE)
-stderr = p.communicate()[1].strip()
+p = Popen(git_buildpackage)
+p.communicate()
 if p.returncode:
-    print(stderr.decode('utf_8'))
     sys.exit(1)
