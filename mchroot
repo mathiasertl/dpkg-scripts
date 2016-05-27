@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import argparse
-import configparser
 import glob
 import os
 import subprocess
@@ -80,8 +79,8 @@ else:
 
 # honour skip = true in .cfg file
 for dist in list(dists):
-    dist_config.get_config(dist)
-    if dist_config.getboolean('DEFAULT', 'skip'):
+    config = dist_config.get_config(dist)
+    if config.getboolean('DEFAULT', 'skip', fallback=False):
         dists.remove(dist)
 
 # honour archs:
