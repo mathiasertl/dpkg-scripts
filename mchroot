@@ -9,6 +9,7 @@ import sys
 
 from dpkg import env
 from dpkg import process
+from dpkg import dist_config
 from dpkg.env import DISTROS
 from dpkg.env import ARCHITECTURES
 from dpkg.argparse_helpers import build_parser
@@ -79,10 +80,8 @@ else:
 
 # honour skip = true in .cfg file
 for dist in list(dists):
-    config = configparser.ConfigParser({'skip': 'false'})
-    config.read([os.path.join(userpath, '%s.cfg' % dist),
-                os.path.join(configpath, '%s.cfg' % dist)])
-    if config.getboolean('DEFAULT', 'skip'):
+    dist_config.get_config(dist)
+    if dist_config.getboolean('DEFAULT', 'skip'):
         dists.remove(dist)
 
 # honour archs:
