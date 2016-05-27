@@ -4,9 +4,13 @@ import os
 import sys
 
 from argparse import ArgumentParser
-from subprocess import Popen
-from dpkg import env, process, argparse_helpers
 from git import Repo
+from subprocess import Popen
+
+from dpkg import argparse_helpers
+from dpkg import dist_config
+from dpkg import env
+from dpkg import process
 
 # parse command-line:
 parser = ArgumentParser(parents=[argparse_helpers.build_parser])
@@ -33,6 +37,11 @@ build_dir = os.path.expanduser('~/build/')
 # pbuilder environment variables:
 os.environ['DIST'] = args.dist
 os.environ['ARCH'] = args.arch
+
+# add a keyid to sign packages with, if in config
+key_id = dist_config.get(args.dist, 'DEBSIGN_KEYID', '')
+if key_id:
+    os.environ['DEBSIGN_KEYID'] = 'E0DCF85B'
 
 cow_path = '/var/cache/pbuilder/base-%s-%s.cow' % (args.dist, args.arch)
 if not os.path.exists(cow_path):
