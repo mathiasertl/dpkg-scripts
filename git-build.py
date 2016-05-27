@@ -108,7 +108,9 @@ git_buildpackage = [
     postexport,
 ] + gbp_args
 print(' '.join(git_buildpackage))
-p = Popen(git_buildpackage)
-p.communicate()
-if p.returncode:
-    sys.exit(1)
+try:
+    p = Popen(git_buildpackage)
+    p.communicate()
+finally:
+    orig_branch.checkout()
+sys.exit(p.returncode)
