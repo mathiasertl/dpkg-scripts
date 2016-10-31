@@ -31,6 +31,7 @@ DISTROS = [
     'wily',
     'xenial',
     'yakkety',
+    'zesty',
     'stretch',
     'unstable',
 ]
