@@ -29,6 +29,7 @@ if args.arch is None:
 
 # default values:
 gbp_args = [
+    # -nc is passed to dpkg-buildpackage and equals "--no-pre-clean"
     '--git-pbuilder', '--git-dist=%s' % args.dist, '--git-arch=%s' % args.arch, '-nc',
 ]
 
