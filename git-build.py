@@ -103,7 +103,8 @@ if not os.path.exists(export_dir):
 
 # build package
 git_buildpackage = [
-    'git-buildpackage',
+    'gbp', 'buildpackage',
+    '-F',  # full build
     '--git-cleaner=',
     '--git-export-dir=%s' % export_dir,
     postexport,
