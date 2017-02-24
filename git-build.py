@@ -91,6 +91,7 @@ details = env.get_package_details()
 archs = set([v['Architecture'] for v in details.values() if 'Source' not in v])
 if set(['all']) == archs and args.arch != 'amd64':
     print('Only arch-independent packages found and not on amd64!')
+    orig_branch.checkout()
     sys.exit()
 
 # get package details:
