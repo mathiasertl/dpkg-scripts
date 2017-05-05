@@ -33,6 +33,7 @@ DISTROS = [
     'yakkety',
     'zesty',
     'stretch',
+    'artful',
     'unstable',
 ]
 ARCHITECTURES = ['amd64', 'i386', ]
