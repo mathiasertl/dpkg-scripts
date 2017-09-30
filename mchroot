@@ -53,6 +53,7 @@ execute.add_argument('--bindmounts', '--bind', '-b', help="Bind given path into 
 execute.add_argument('--save', '-s', default=False, action='store_true',
                      help="Update chroot after execution.")
 upload = subparsers.add_parser('upload', help="Upload previously built package.")
+stage = subparsers.add_parser('stage', help="Upload previously built package to staging-repo.")
 args = parser.parse_args()
 
 failed = []
@@ -116,6 +117,8 @@ for dist in dists:
                 cmd = ['git-build.py', '--dist=%s' % dist, '--arch=%s' % arch]
                 if args.upload:
                     cmd.append('--upload')
+                if args.stage:
+                    cmd.append('--stage')
                 if args.sa:
                     cmd.append('-s')
                 if not args.pristine:
@@ -138,6 +141,13 @@ for dist in dists:
                 changes_file = process.get_changes_file(dist, arch)
                 if os.path.exists(changes_file):
                     cmd = ['dput', '-f', '%s-%s' % (dist, arch), changes_file]
+                else:
+                    print('Warning: No changes file in %s-%s found.' % (dist, arch))
+                    continue
+            elif args.cmd == 'stage':
+                changes_file = process.get_changes_file(dist, arch)
+                if os.path.exists(changes_file):
+                    cmd = ['dput', '-f', '%s-%s-stage' % (dist, arch), changes_file]
                 else:
                     print('Warning: No changes file in %s-%s found.' % (dist, arch))
                     continue

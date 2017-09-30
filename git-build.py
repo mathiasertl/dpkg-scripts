@@ -69,13 +69,21 @@ if branch:
 
 postexport = '--git-postexport=%s' % '; '.join(process.postexport_cmds(args.dist))
 
+changes_file = process.get_changes_file(args.dist, args.arch)
+postbuild = []
 if args.upload:
     # NOTE: We do not use $GBP_CHANGES_FILE for the changes file, because the version is updated in
     # the postexport script and $GBP_CHANGES_FILE seems to be computed before that, so the location
     # of the changes-file does not add up.
-    changes_file = process.get_changes_file(args.dist, args.arch)
-    postbuild = '--git-postbuild=dput -f %s-%s %s' % (args.dist, args.arch, changes_file)
-    gbp_args.append(postbuild)
+    postbuild.append('dput -f %s-%s %s' % (args.dist, args.arch, changes_file))
+if args.stage:
+    stage_dest = '/var/cache/pbuilder/repo/%s-%s' % (args.dist, args.arch)
+    if not os.path.exists(stage_dest):
+        os.makedirs(stage_dest)
+    postbuild.append('dput -f %s-%s-stage %s' % (args.dist, args.arch, changes_file))
+
+if postbuild:
+    gbp_args.append('--git-postbuild=%s' % '; '.join(postbuild))
 
 if args.pristine:
     gbp_args.append('--git-pristine-tar')

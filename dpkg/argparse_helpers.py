@@ -8,6 +8,9 @@ build_parser.add_argument(
     '-u', '--upload', action='store_true', default=False,
     help="Upload files to enceladus.htu.")
 build_parser.add_argument(
+    '--stage', action='store_true', default=False,
+    help="Add files to staging repo.")
+build_parser.add_argument(
     '--no-pristine', action='store_false', dest='pristine', default=True,
     help="Do not use pristine tars")
 build_parser.add_argument(
