@@ -96,7 +96,7 @@ if args.cmd in ['build', 'upload', ] and not os.path.exists(os.path.join('debian
 
 # finally, loop over dists:
 for dist in dists:
-    if args.cmd in ['build', 'upload', ] and not env.would_build(dist):
+    if args.cmd in ['build', 'upload', 'stage', ] and not env.would_build(dist):
         print('Not building on %s.' % dist)
         continue
 
