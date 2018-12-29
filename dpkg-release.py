@@ -67,8 +67,10 @@ changelog = '\n'.join([l.strip() for l in changelog.splitlines() if l.startswith
 # Actually create release on GitHub
 github = Github(token)
 repo = github.get_repo(github_repo_name)
-repo.create_git_release(
+release = repo.create_git_release(
     # TODO: get from gbp.conf config-format?
-    tag='debian/%s' % version,
+    tag='debian/%s' % version.replace(':', '%'),
     name=version,
     message=changelog)
+#print('Pushed release to %s' % release.url)
+print('Pushed release to %s' % release.raw_data['html_url'])
