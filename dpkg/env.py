@@ -36,6 +36,7 @@ DISTROS = [
     'artful',
     'bionic',
     'cosmic',
+    'disco',
     'buster',
     'unstable',
 ]
