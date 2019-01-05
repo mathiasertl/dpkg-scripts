@@ -81,23 +81,6 @@ def test_dir():
         sys.exit(1)
 
 
-def get_architecture():
-    return get_command_output(['dpkg-architecture', '-qDEB_BUILD_ARCH'])
-
-
-def get_lsb_value(var):
-    f = open('/etc/lsb-release')
-    line = [l for l in f.readlines() if l.startswith(var)]
-    if len(line) != 1:
-        raise RuntimeError("Variable could not be read from /etc/lsb-release")
-
-    return line[0].strip().split('=', 1)[1]
-
-
-def get_distribution():
-    return get_command_output(['lsb_release', '-sc']).lower()
-
-
 def get_binary_packages():
     test_dir()
     f = open('debian/control', 'r')
