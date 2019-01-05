@@ -38,6 +38,7 @@ build_dir = os.path.expanduser('~/build/')
 # pbuilder environment variables:
 os.environ['DIST'] = args.dist
 os.environ['ARCH'] = args.arch
+os.environ['VENDOR'] = dist_config.get(args.dist, 'VENDOR')
 
 # add a keyid to sign packages with, if in config
 key_id = dist_config.get(args.dist, 'DEBSIGN_KEYID', '')

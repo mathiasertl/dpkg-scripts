@@ -102,6 +102,10 @@ for dist in dists:
 
     for arch in archs:
         if os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (dist, arch)):
+            config = dist_config.get_config(dist)
+            vendor = config.get('DEFAULT', 'vendor')
+
+            os.environ['VENDOR'] = vendor
             os.environ['DIST'] = dist
             os.environ['ARCH'] = arch
 
@@ -159,7 +163,7 @@ for dist in dists:
             failed.append('%s-%s' % (dist, arch))
             continue
 
-        print('\n\n### DIST=%s ARCH=%s %s\n' % (dist, arch, ' '.join(cmd)))
+        print('\n\n### DIST=%s ARCH=%s VENDOR=%s %s\n' % (dist, arch, vendor, ' '.join(cmd)))
         ret = subprocess.call(cmd)
         if ret > 0:
             failed.append('%s-%s' % (dist, arch))

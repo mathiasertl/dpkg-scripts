@@ -20,7 +20,9 @@ def get_config(dist):
             os.path.join('/etc/dist-config', '%s.cfg' % dist),
         ]
 
-        cfg = configparser.RawConfigParser()
+        cfg = configparser.ConfigParser({
+            'vendor': 'debian',
+        })
         cfg.read(files)
         config[dist] = cfg
     return config[dist]
