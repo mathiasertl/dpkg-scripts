@@ -53,21 +53,6 @@ def postexport_cmds(dist):
     cmds = []
     env.test_dir()
 
-    # update debian/compat
-    compat = dist_config.get(dist, 'compat')
-    #cmds.append('echo %s > debian/compat' % compat)
-
-    # set Standards-Version field
-    standards = dist_config.get(dist, 'standards')
-    sed_ex = 's/^Standards-Version:.*/Standards-Version: %s/' % standards
-    #cmds.append('sed -i "%s" debian/control' % sed_ex)
-
-    # set distribution in topmost entry in changes-file:
-    if dist_config.has_option(dist, 'name'):
-        dist = dist_config.get(dist, 'name')
-    sed_ex = '1s/) [^;]*;/) %s;/' % dist
-    #cmds.append('sed -i "%s" debian/changelog' % sed_ex)
-
     update, version = get_version(dist)
     if update:
         regex = '1s/(.*)/(%s)/' % version
