@@ -25,7 +25,7 @@ DIST=gutsy ARCH=amd64 git-pbuilder create --distribution gutsy --architecture=am
 For Debian:
 
 ```
-DIST=wheezy ARCH=amd64 git-pbuilder create --distribution wheezy --architecture amd64 \
+DIST=stretch ARCH=amd64 git-pbuilder create --distribution wheezy --architecture amd64 \
   --mirror http://gd.tuwien.ac.at/opsys/linux/debian/ \
   --debootstrapopts "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
 ```
