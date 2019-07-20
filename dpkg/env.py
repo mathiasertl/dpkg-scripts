@@ -38,6 +38,8 @@ DISTROS = [
     'cosmic',
     'disco',
     'buster',
+    'eoan',
+    'bullseye',
     'unstable',
 ]
 ARCHITECTURES = ['amd64', 'i386', ]
