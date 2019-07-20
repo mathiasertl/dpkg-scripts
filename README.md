@@ -17,7 +17,7 @@ sudo ln -s gutsy cosmic
 For Ubuntu:
 
 ```
-DIST=gutsy ARCH=amd64 git-pbuilder create --distribution gutsy --architecture=amd64 \
+DIST=bionic ARCH=amd64 git-pbuilder create --distribution bionic --architecture=amd64 \
   --mirror=http://at.archive.ubuntu.com/ubuntu/ --components="main universe" \
   --debootstrapopts "--keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg"
 ```
@@ -25,8 +25,8 @@ DIST=gutsy ARCH=amd64 git-pbuilder create --distribution gutsy --architecture=am
 For Debian:
 
 ```
-DIST=stretch ARCH=amd64 git-pbuilder create --distribution wheezy --architecture amd64 \
-  --mirror http://gd.tuwien.ac.at/opsys/linux/debian/ \
+DIST=buster ARCH=amd64 git-pbuilder create --distribution buster --architecture amd64 \
+  --mirror http://ftp.at.debian.org/debian/ \
   --debootstrapopts "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
 ```
 
