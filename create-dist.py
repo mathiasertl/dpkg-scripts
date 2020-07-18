@@ -1,12 +1,21 @@
 #!/usr/bin/python3
 
 import argparse
+import configparser
+import datetime
 import os
 import subprocess
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--vendor', choices=['debian', 'ubuntu'],
                     help='Distribution vendor.')
+parser.add_argument('-r', metavar='Y-m-d', dest='release_date',
+                    help='Date when this distribution was released.')
+parser.add_argument('-s', metavar='Y-m-d', dest='supported_until',
+                    help='Date until which this distribution is supported.')
+parser.add_argument('--release',
+                    help='Release tag used in versioning of packages.')
 parser.add_argument('dist', help='Name of the distribution.')
 args = parser.parse_args()
 
@@ -15,6 +24,34 @@ if not vendor:
     vendor = input('Distribution vendor [DEBIAN|ubuntu]: ').lower().strip()
     if not vendor:
         vendor = 'debian'
+
+release_date = args.release_date
+if not release_date:
+    today = datetime.date.today().strftime('%Y-%m-%d')
+    release_date = input('Release date [%s]: ' % today)
+    if not release_date:
+        release_date = today
+release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d').date()
+
+supported_until = args.supported_until
+if not supported_until:
+    supported_until = input('Supported until: ')
+    if not supported_until:
+        print('Error: You must tell me until when this distribution is supported.')
+        sys.exit(1)
+supported_until = datetime.datetime.strptime(supported_until, '%Y-%m-%d').date()
+
+release = args.release
+if not args.release:
+    if vendor == 'debian':
+        example = '10'
+    else:
+        example = '20.04'
+    release = input('Release number (ex: %s): ' % example)
+if vendor == 'debian':
+    release = 'afa%s0' % release
+else:
+    release = 'ubuntu%s' % release
 
 # create debootstrap script if necessary
 debootstrap_script = '/usr/share/debootstrap/scripts/%s' % args.dist
@@ -26,6 +63,17 @@ if not os.path.exists(debootstrap_script):
 
     subprocess.run(['sudo', 'ln', '-s', debootstrap_dest, debootstrap_script], check=True)
 
+# location of this script
+scriptpath = os.path.dirname(os.path.realpath(__file__))
+dc_path = os.path.join(scriptpath, 'dist-config', '%s.cfg' % args.dist)
+dc_config = configparser.ConfigParser()
+dc_config['DEFAULT']['vendor'] = vendor
+dc_config['DEFAULT']['release'] = release
+dc_config['DEFAULT']['released'] = release_date.strftime('%Y-%m-%d')
+dc_config['DEFAULT']['supported-until'] = supported_until.strftime('%Y-%m-%d')
+
+with open(dc_path, 'w') as stream:
+    dc_config.write(stream, True)
 
 for arch in ['amd64', 'i386']:
     pbuilder_create = [
@@ -48,6 +96,26 @@ for arch in ['amd64', 'i386']:
     pbuilder_create += [
     ]
 
+    # create pbuilder chroot
     if not os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (args.dist, arch)):
         print('+ ', ' '.join(pbuilder_create))
         subprocess.run(pbuilder_create, check=True, env={'DIST': args.dist, 'ARCH': arch})
+
+    # update dput config
+    dput_path = os.path.expanduser('~/.dput.cf')
+    dput_config = configparser.ConfigParser()
+    dput_config.read([dput_path])
+    dput_section = '%s-%s' % (args.dist, arch)
+    if dput_section not in dput_config:
+        dput_config.add_section(dput_section)
+    dput_config[dput_section]['dist'] = args.dist
+    dput_config[dput_section]['arch'] = arch
+
+    dput_stage_section = '%s-%s-stage' % (args.dist, arch)
+    if dput_stage_section not in dput_config:
+        dput_config.add_section(dput_stage_section)
+    dput_config[dput_stage_section]['method'] = 'local'
+    dput_config[dput_stage_section]['incoming'] = '/var/cache/pbuilder/repo/%s-%s' % (args.dist, arch)
+
+    with open(dput_path, 'w') as stream:
+        dput_config.write(stream, space_around_delimiters=True)
