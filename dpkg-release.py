@@ -62,7 +62,7 @@ version = version.strip().decode('utf-8')
 # parse the changelog (use only lines starting with two spaces, and skip those spaces)
 changelog = subprocess.check_output(['dpkg-parsechangelog', '--show-field', 'Changes'])
 changelog = changelog.strip().decode('utf-8')
-changelog = '\n'.join([l.strip() for l in changelog.splitlines() if l.startswith('  ')])
+changelog = '\n'.join([line.strip() for line in changelog.splitlines() if line.startswith('  ')])
 
 # Actually create release on GitHub
 github = Github(token)
