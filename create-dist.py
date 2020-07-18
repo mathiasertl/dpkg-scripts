@@ -28,7 +28,12 @@ if not os.path.exists(debootstrap_script):
 
 
 for arch in ['amd64', 'i386']:
-    pbuilder_create = ['git-pbuilder', 'create', '--distribution', args.dist, '--architecture', arch]
+    pbuilder_create = [
+        'git-pbuilder', 'create', '--distribution', args.dist, '--architecture', arch,
+        '--othermirror', 'deb http://apt.local %s all' % args.dist,
+        '--keyring', '/usr/share/keyrings/fsinf-keyring.gpg',
+        '--extrapackages', 'eatmydata gnupg2 lintian fakeroot fsinf-keyring',
+    ]
 
     if vendor == 'debian':
         pbuilder_create += [
@@ -41,8 +46,8 @@ for arch in ['amd64', 'i386']:
             '--debootstrapopts' '--keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg',
         ]
     pbuilder_create += [
-        '--extrapackages', 'eatmydata gnupg2 lintian fakeroot',
     ]
 
     if not os.path.exists('/var/cache/pbuilder/base-%s-%s.cow' % (args.dist, arch)):
+        print('+ ', ' '.join(pbuilder_create))
         subprocess.run(pbuilder_create, check=True, env={'DIST': args.dist, 'ARCH': arch})
