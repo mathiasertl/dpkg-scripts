@@ -54,6 +54,7 @@ execute.add_argument('--save', '-s', default=False, action='store_true',
                      help="Update chroot after execution.")
 upload = subparsers.add_parser('upload', help="Upload previously built package.")
 stage = subparsers.add_parser('stage', help="Upload previously built package to staging-repo.")
+subparsers.add_parser('list', help="List distributions that I would execute for.")
 args = parser.parse_args()
 
 failed = []
@@ -83,6 +84,11 @@ for dist in list(dists):
     config = dist_config.get_config(dist)
     if config.getboolean('DEFAULT', 'skip', fallback=False):
         dists.remove(dist)
+
+if args.cmd == 'list':
+    for dist in dists:
+        print(dist)
+    sys.exit()
 
 # honour archs:
 if args.arch:
