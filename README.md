@@ -1,58 +1,12 @@
-## Add a new distribution
+## Local installation
 
-
-### Add debootstrap script
-
-First, you might have to symlink debootstrap scripts for the new distro
-(especially any Ubuntu version) (note that all Ubuntu versions are just a
-symlink to gutsy):
+Install dependencies:
 
 ```
-cd /usr/share/debootstrap/scripts
-sudo ln -s gutsy cosmic
+apt-get install python3 dput git-buildpackage pbuilder
 ```
-
-### Build pbuilder chroot
-
-For Ubuntu:
-
-```
-DIST=bionic ARCH=amd64 git-pbuilder create --distribution bionic --architecture=amd64 \
-  --mirror=http://at.archive.ubuntu.com/ubuntu/ --components="main universe" \
-  --debootstrapopts "--keyring=/usr/share/keyrings/ubuntu-archive-keyring.gpg"
-```
-
-For Debian:
-
-```
-DIST=buster ARCH=amd64 git-pbuilder create --distribution buster --architecture amd64 \
-  --mirror http://ftp.at.debian.org/debian/ \
-  --debootstrapopts "--keyring=/usr/share/keyrings/debian-archive-keyring.gpg"
-```
-
-### Configure dput upload locations
 
 Edit `~/.dput.cf` and add:
-
-```
-[cosmic-amd64]
-dist = cosmic
-arch = amd64
-
-[cosmic-i386]
-dist = cosmic
-arch = i386
-
-[cosmic-amd64-stage]
-incoming = /var/cache/pbuilder/repo/cosmic-amd64
-method = local
-
-[cosmic-i386-stage]
-incoming = /var/cache/pbuilder/repo/cosmic-i386
-method = local
-```
-
-If not already present, add the default config as well:
 
 ```
 [DEFAULT]
@@ -62,10 +16,17 @@ login = mati
 incoming = incoming/%(dist)s-%(arch)s
 ```
 
-### Add dist config
+## Add a new distribution
 
-In this repo, add `dist-config/<dist>.cfg` (copy from the last version of the
-same vendor). You will have to update some data later.
+A script will add everything locally for you:
+
+```
+./create-dist.py --release 10 buster
+./create-dist.py --vendor ubuntu --release 20.04 focal
+```
+
+If you do not have the `fsinf-keyring` package installed, you need to pass it
+locally using the `--fsinf-keyring` parameter.
 
 ### Prepare repository server
 
@@ -82,22 +43,3 @@ On the repository server side, you have to do:
   cd /var/www/apt.fsinf.at
   reprepro copy cosmic bionic fsinf-keyring
   ```
-
-### Add base packages
-
-Add some base packages so that builds are faster. Use mchroot to log into the
-new distro:
-
-```
-mchroot -d cosmic login --save
-```
-
-And install packages in each:
-
-```
-apt-get install -y gnupg2 lintian fakeroot eatmydata
-echo deb http://apt.local <dist> all > /etc/apt/sources.list.d/fsinf.list
-apt-get update -o Acquire::AllowInsecureRepositories=true
-apt-get install -y --allow-unauthenticated fsinf-keyring
-apt-get update
-```

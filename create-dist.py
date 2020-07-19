@@ -16,8 +16,14 @@ parser.add_argument('--supported-until', metavar='YYYY-MM-DD',
                     help='Date until which this distribution is supported.')
 parser.add_argument('--release',
                     help='Release tag used in versioning of packages.')
+parser.add_argument('--fsinf-keyring', default='/usr/share/keyrings/fsinf-keyring.gpg',
+                    help='Location of the FSINF keyring (default: %(default)s).')
 parser.add_argument('dist', help='Name of the distribution.')
 args = parser.parse_args()
+
+if not os.path.exists(args.fsinf_keyring):
+    print('Error: %s: File not found (give path with --fsinf-keyring).' % args.fsinf_keyring)
+    sys.exit(1)
 
 vendor = args.vendor
 if not vendor:
@@ -79,7 +85,7 @@ for arch in ['amd64', 'i386']:
     pbuilder_create = [
         'git-pbuilder', 'create', '--distribution', args.dist, '--architecture', arch,
         '--othermirror', 'deb http://apt.local %s all' % args.dist,
-        '--keyring', '/usr/share/keyrings/fsinf-keyring.gpg',
+        '--keyring', args.fsinf_keyring,
         '--extrapackages', 'eatmydata gnupg2 lintian fakeroot fsinf-keyring',
     ]
 
