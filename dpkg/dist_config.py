@@ -1,29 +1,19 @@
 # helper functions for git-buildpackage related tasks
 
-import os
-import sys
-
-import six
-
-from six.moves import configparser
+import configparser
+from importlib import resources
 
 config = {}
+
 
 def get_config(dist):
     global config
 
     if dist not in config:
-        scriptpath = os.path.dirname(os.path.dirname(__file__))
-        files = [
-            os.path.join(scriptpath, 'dist-config', '%s.cfg' % dist),
-            os.path.join(os.path.expanduser('~/.dist-config'), '%s.cfg' % dist),
-            os.path.join('/etc/dist-config', '%s.cfg' % dist),
-        ]
-
         cfg = configparser.ConfigParser({
             'vendor': 'debian',
         })
-        cfg.read(files)
+        cfg.read_file(resources.open_text('dpkg.dist_config', '%s.cfg' % dist))
         config[dist] = cfg
     return config[dist]
 
@@ -36,7 +26,7 @@ def get(dist, value, default=None):
         if default is not None:
             return default
         else:
-            six.reraise(*sys.exc_info())
+            raise
 
 
 def has_option(dist, value):

@@ -7,6 +7,8 @@ import os
 import subprocess
 import sys
 
+from dpkg import dist_config
+
 
 def _parse_date(date):
     """Function to parse a date string into a date object."""
@@ -91,7 +93,7 @@ if not os.path.exists(debootstrap_script):
 
 # location of this script
 scriptpath = os.path.dirname(os.path.realpath(__file__))
-dc_path = os.path.join(scriptpath, 'dist-config', '%s.cfg' % args.dist)
+dc_path = os.path.join(dist_config.__path__, '%s.cfg' % args.dist)
 dc_config = configparser.ConfigParser()
 dc_config['DEFAULT']['vendor'] = vendor
 dc_config['DEFAULT']['release'] = release
