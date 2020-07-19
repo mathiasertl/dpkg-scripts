@@ -1,4 +1,3 @@
-import os
 import re
 import sys
 
@@ -7,62 +6,24 @@ from subprocess import Popen, PIPE
 from dpkg import gbp
 from dpkg import dist_config
 
-
-def get_distributions():
-    dists = [os.path.splitext(f)[0] for f in resources.contents('dpkg.dist_config') if f.endswith('.cfg')]
-
-# available distros, in order of release
-# NOTE: do not remove old distros, as this list is used
-#    to determine increasing debian revision numbers.
-DISTROS = [
-    'hardy',
-    'lenny',
-    'jaunty',
-    'karmic',
-    'lucid',
-    'maverick',
-    'natty',
-    'squeeze',
-    'oneiric',
-    'precise',
-    'quantal',
-    'wheezy',
-    'raring',
-    'saucy',
-    'trusty',
-    'utopic',
-    'jessie',
-    'vivid',
-    'wily',
-    'xenial',
-    'yakkety',
-    'zesty',
-    'stretch',
-    'artful',
-    'bionic',
-    'cosmic',
-    'disco',
-    'buster',
-    'eoan',
-    'bullseye',
-    'unstable',
-]
 ARCHITECTURES = ['amd64', 'i386', ]
 
 
-def would_build(dist):
-    build_distros = DISTROS
+def would_build(dist, distros=None):
+    if distros is None:
+        distros = dist_config.load_distributions()
+
     if gbp.has_option('until'):
         until = gbp.get('until')
-        build_distros = build_distros[:build_distros.index(until) + 1]
+        distros = distros[:distros.index(until) + 1]
     if gbp.has_option('from'):
         until = gbp.get('from')
-        build_distros = build_distros[build_distros.index(until):]
+        distros = distros[distros.index(until):]
     if gbp.has_option('exclude'):
         exclude = gbp.get('exclude').split()
-        build_distros = [d for d in build_distros if d not in exclude]
+        distros = [d for d in distros if d not in exclude]
 
-    if dist in build_distros:
+    if dist in distros:
         return True
     else:
         return False
