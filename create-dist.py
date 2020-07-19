@@ -7,12 +7,39 @@ import os
 import subprocess
 import sys
 
+
+def _parse_date(date):
+    """Function to parse a date string into a date object."""
+    return datetime.datetime.strptime(date, '%Y-%m-%d').date()
+
+
+def _get_date(prompt, default=None):
+    """Function to get a date via prompt."""
+    fmt = '%Y-%m-%d'
+    if default:
+        act_prompt = '%s [%s]: ' % (prompt, default.strftime(fmt))
+    else:
+        act_prompt = '%s: ' % prompt
+
+    d = input(act_prompt)
+    if default and not d:
+        return default
+    elif not d:
+        d = _get_date(prompt, default)
+
+    try:
+        return datetime.datetime.strptime(d, '%Y-%m-%d').date()
+    except ValueError as e:
+        print(e)
+        return _get_date(prompt, default)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--vendor', choices=['debian', 'ubuntu'],
                     help='Distribution vendor.')
-parser.add_argument('--release-date', metavar='YYYY-MM-DD',
+parser.add_argument('--release-date', metavar='YYYY-MM-DD', type=_parse_date,
                     help='Date when this distribution was released.')
-parser.add_argument('--supported-until', metavar='YYYY-MM-DD',
+parser.add_argument('--supported-until', metavar='YYYY-MM-DD', type=_parse_date,
                     help='Date until which this distribution is supported.')
 parser.add_argument('--release',
                     help='Release tag used in versioning of packages.')
@@ -20,6 +47,7 @@ parser.add_argument('--fsinf-keyring', default='/usr/share/keyrings/fsinf-keyrin
                     help='Location of the FSINF keyring (default: %(default)s).')
 parser.add_argument('dist', help='Name of the distribution.')
 args = parser.parse_args()
+
 
 if not os.path.exists(args.fsinf_keyring):
     print('Error: %s: File not found (give path with --fsinf-keyring).' % args.fsinf_keyring)
@@ -33,19 +61,11 @@ if not vendor:
 
 release_date = args.release_date
 if not release_date:
-    today = datetime.date.today().strftime('%Y-%m-%d')
-    release_date = input('Release date [%s]: ' % today)
-    if not release_date:
-        release_date = today
-release_date = datetime.datetime.strptime(release_date, '%Y-%m-%d').date()
+    release_date = _get_date('Release date', default=datetime.date.today())
 
 supported_until = args.supported_until
 if not supported_until:
-    supported_until = input('Supported until: ')
-    if not supported_until:
-        print('Error: You must tell me until when this distribution is supported.')
-        sys.exit(1)
-supported_until = datetime.datetime.strptime(supported_until, '%Y-%m-%d').date()
+    supported_until = _get_date('Supported until')
 
 release = args.release
 if not args.release:
