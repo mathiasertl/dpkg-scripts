@@ -8,40 +8,15 @@ import subprocess
 import sys
 
 from dpkg import dist_config
-
-
-def _parse_date(date):
-    """Function to parse a date string into a date object."""
-    return datetime.datetime.strptime(date, '%Y-%m-%d').date()
-
-
-def _get_date(prompt, default=None):
-    """Function to get a date via prompt."""
-    fmt = '%Y-%m-%d'
-    if default:
-        act_prompt = '%s [%s]: ' % (prompt, default.strftime(fmt))
-    else:
-        act_prompt = '%s: ' % prompt
-
-    d = input(act_prompt)
-    if default and not d:
-        return default
-    elif not d:
-        d = _get_date(prompt, default)
-
-    try:
-        return datetime.datetime.strptime(d, '%Y-%m-%d').date()
-    except ValueError as e:
-        print(e)
-        return _get_date(prompt, default)
+from dpkg import utils
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--vendor', choices=['debian', 'ubuntu'],
                     help='Distribution vendor.')
-parser.add_argument('--release-date', metavar='YYYY-MM-DD', type=_parse_date,
+parser.add_argument('--release-date', metavar='YYYY-MM-DD', type=utils.parse_date,
                     help='Date when this distribution was released.')
-parser.add_argument('--supported-until', metavar='YYYY-MM-DD', type=_parse_date,
+parser.add_argument('--supported-until', metavar='YYYY-MM-DD', type=utils.parse_date,
                     help='Date until which this distribution is supported.')
 parser.add_argument(
     '--release',
@@ -64,11 +39,11 @@ if not vendor:
 
 release_date = args.release_date
 if not release_date:
-    release_date = _get_date('Release date', default=datetime.date.today())
+    release_date = utils.get_date('Release date', default=datetime.date.today())
 
 supported_until = args.supported_until
 if not supported_until:
-    supported_until = _get_date('Supported until')
+    supported_until = utils.get_date('Supported until')
 
 release = args.release
 if not args.release:
