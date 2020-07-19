@@ -10,9 +10,9 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('-v', '--vendor', choices=['debian', 'ubuntu'],
                     help='Distribution vendor.')
-parser.add_argument('-r', metavar='Y-m-d', dest='release_date',
+parser.add_argument('--release-date', metavar='YYYY-MM-DD',
                     help='Date when this distribution was released.')
-parser.add_argument('-s', metavar='Y-m-d', dest='supported_until',
+parser.add_argument('--supported-until', metavar='YYYY-MM-DD',
                     help='Date until which this distribution is supported.')
 parser.add_argument('--release',
                     help='Release tag used in versioning of packages.')
@@ -49,7 +49,7 @@ if not args.release:
         example = '20.04'
     release = input('Release number (ex: %s): ' % example)
 if vendor == 'debian':
-    release = 'afa%s0' % release
+    release = 'afa%s' % release
 else:
     release = 'ubuntu%s' % release
 
@@ -69,7 +69,7 @@ dc_path = os.path.join(scriptpath, 'dist-config', '%s.cfg' % args.dist)
 dc_config = configparser.ConfigParser()
 dc_config['DEFAULT']['vendor'] = vendor
 dc_config['DEFAULT']['release'] = release
-dc_config['DEFAULT']['released'] = release_date.strftime('%Y-%m-%d')
+dc_config['DEFAULT']['release-date'] = release_date.strftime('%Y-%m-%d')
 dc_config['DEFAULT']['supported-until'] = supported_until.strftime('%Y-%m-%d')
 
 with open(dc_path, 'w') as stream:
