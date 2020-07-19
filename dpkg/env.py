@@ -52,8 +52,8 @@ def test_dir():
 def get_binary_packages():
     test_dir()
     f = open('debian/control', 'r')
-    lines = [l for l in f.readlines() if l.startswith('Package: ')]
-    return [l.split(': ', 1)[1].strip() for l in lines]
+    lines = [line for line in f.readlines() if line.startswith('Package: ')]
+    return [line.split(': ', 1)[1].strip() for line in lines]
 
 
 def get_packages():
@@ -63,7 +63,7 @@ def get_packages():
 def get_package_details():
     test_dir()
     f = open('debian/control', 'r')
-    lines = [l for l in f.readlines()]
+    lines = [line for line in f.readlines()]
     packages = {}
     field, value, pkg, pkg_name = None, None, None, None
     for line in lines:
@@ -106,13 +106,14 @@ def get_package_details():
 def get_changelog_fields(changelog='debian/changelog'):
     # cgabackup (1:2.2-1) quantal; urgency=low
     line = open(changelog).readline().strip()
-    match = re.match(r'^(?P<package>[^ ]*)\s+\((?P<version>[^\)]*)\)\s+'
-                     '(?P<dist>[^;]*);\s+(?P<urgency>.*)', line)
+    match = re.match(
+        r'^(?P<package>[^ ]*)\s+\((?P<version>[^\)]*)\)\s+(?P<dist>[^;]*);\s+(?P<urgency>.*)', line)
     return match.groupdict()
 
 
 def get_source_package(changelog='debian/changelog'):
     return get_changelog_fields(changelog)['package']
+
 
 def get_source_version(changelog='debian/changelog'):
     version = get_changelog_fields(changelog)['version']
