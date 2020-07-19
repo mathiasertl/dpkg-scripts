@@ -2,15 +2,29 @@
 
 import configparser
 import os
+from datetime import date
 from importlib import resources
+
+from ..utils import parse_date
 
 config = {}
 
 
 def load_distributions():
+    today = date.today()
+
     dists = [os.path.splitext(f)[0] for f in resources.contents('dpkg.dist_config') if f.endswith('.cfg')]
-    for dist in list(dists):
+    for dist in list(sorted(dists)):
         config = get_config(dist)
+
+        supported_until = config['DEFAULT']['supported-until']
+        if supported_until == '':
+            continue  # EOL for this dist has not been defined yet
+
+        if today > parse_date(supported_until):
+            dists.remove(dist)
+            continue
+
         if config['DEFAULT'].getboolean('skip'):
             dists.remove(dist)
 
