@@ -16,12 +16,14 @@ CONFIG_FILES = [
 ]
 config = None
 
+
 def get_config():
     global config
     if config is None:
         config = configparser.RawConfigParser({'append-dist': 'true'})
         config.read(CONFIG_FILES)
     return config
+
 
 def get(value, default=None):
     config = get_config()
@@ -32,6 +34,7 @@ def get(value, default=None):
             return default
         else:
             six.reraise(*sys.exc_info())
+
 
 def getboolean(value, default=None):
     config = get_config()

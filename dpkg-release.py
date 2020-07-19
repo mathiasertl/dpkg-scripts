@@ -8,9 +8,11 @@ import sys
 
 from github import Github
 
+
 def get_field(field):
     data = subprocess.check_output(['dpkg-parsechangelog', '--show-field', field])
     return data.strip().decode('utf-8')
+
 
 config = configparser.ConfigParser()
 config_path = '~/.dpkg-release.conf'
