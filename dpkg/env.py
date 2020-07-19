@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 
@@ -5,6 +6,10 @@ from subprocess import Popen, PIPE
 
 from dpkg import gbp
 from dpkg import dist_config
+
+
+def get_distributions():
+    dists = [os.path.splitext(f)[0] for f in resources.contents('dpkg.dist_config') if f.endswith('.cfg')]
 
 # available distros, in order of release
 # NOTE: do not remove old distros, as this list is used
