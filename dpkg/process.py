@@ -1,10 +1,7 @@
-from __future__ import absolute_import
-
 import os
 
 from . import env
 from . import gbp
-from . import dist_config
 
 
 def get_branch(repo, dist, dist_id=None):
@@ -70,36 +67,3 @@ def get_changes_file(dist, arch):
     changes = '%s_%s_%s.changes' % (changelog_fields['package'], version, arch)
     path = os.path.join(os.path.expanduser('~/build'), '%s-%s' % (dist, arch))
     return os.path.join(path, changes)
-
-
-def get_changes_fields(path):
-	data = gnupg.GPG().decrypt_file(open(path, 'rb'))
-	if not data.valid:
-		raise RuntimeError("%s: GPG signature not valid" % path)
-
-	data = data.data
-	if six.PY3:
-		data = data.decode('utf-8')
-
-	fields = {}
-
-	last_field = None
-	for line in data.strip().split("\n"):
-		if line.startswith(' '):
-			# append to last line
-			if fields[last_field] == '':
-				fields[last_field] = line[1:]
-			else:
-				fields[last_field] += "\n%s" % line[1:]
-		else:
-			field, value = line.split(':', 1)
-			field = field.strip()
-			value = value.strip()
-
-			last_field = field
-			fields[field] = value
-	fields['Architecture'] = fields['Architecture'].split()
-	return fields
-
-def get_binary_packages(path):
-	return [f for f in get_changes_fields(path) if f.endswith('.deb')]
