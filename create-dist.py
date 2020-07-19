@@ -43,9 +43,10 @@ parser.add_argument('--release-date', metavar='YYYY-MM-DD', type=_parse_date,
                     help='Date when this distribution was released.')
 parser.add_argument('--supported-until', metavar='YYYY-MM-DD', type=_parse_date,
                     help='Date until which this distribution is supported.')
-parser.add_argument('--release',
-                    help='Release tag used in versioning of packages.')
-parser.add_argument('--fsinf-keyring', default='/usr/share/keyrings/fsinf-keyring.gpg',
+parser.add_argument(
+    '--release',
+    help='Release tag used in versioning of packages (e.g. "10" for Debian or "20.04" for Ubuntu).')
+parser.add_argument('--fsinf-keyring', default='/usr/share/keyrings/fsinf-keyring.gpg', metavar='PATH',
                     help='Location of the FSINF keyring (default: %(default)s).')
 parser.add_argument('dist', help='Name of the distribution.')
 args = parser.parse_args()
